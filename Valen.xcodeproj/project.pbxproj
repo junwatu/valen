@@ -15,6 +15,7 @@
 		A00000000000000000000006 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000026 /* SettingsView.swift */; };
 		A00000000000000000000007 /* SparkleUpdater.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000027 /* SparkleUpdater.swift */; };
 		A00000000000000000000008 /* VideoSurfaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000028 /* VideoSurfaceView.swift */; };
+		A0000000000000000000000D /* LayoutMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000002F /* LayoutMetrics.swift */; };
 		A00000000000000000000009 /* Valen.icns in Resources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000029 /* Valen.icns */; };
 		A0000000000000000000000A /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A0000000000000000000002A /* AppKit.framework */; };
 		A0000000000000000000000B /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A0000000000000000000002B /* OpenGL.framework */; };
@@ -31,6 +32,7 @@
 		A00000000000000000000026 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		A00000000000000000000027 /* SparkleUpdater.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SparkleUpdater.swift; sourceTree = "<group>"; };
 		A00000000000000000000028 /* VideoSurfaceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoSurfaceView.swift; sourceTree = "<group>"; };
+		A0000000000000000000002F /* LayoutMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayoutMetrics.swift; sourceTree = "<group>"; };
 		A00000000000000000000029 /* Valen.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = Valen.icns; sourceTree = "<group>"; };
 		A0000000000000000000002A /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
 		A0000000000000000000002B /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
@@ -110,6 +112,7 @@
 				A00000000000000000000026 /* SettingsView.swift */,
 				A00000000000000000000027 /* SparkleUpdater.swift */,
 				A00000000000000000000028 /* VideoSurfaceView.swift */,
+				A0000000000000000000002F /* LayoutMetrics.swift */,
 			);
 			path = mpvdesk;
 			sourceTree = "<group>";
@@ -199,6 +202,7 @@
 				A00000000000000000000006 /* SettingsView.swift in Sources */,
 				A00000000000000000000007 /* SparkleUpdater.swift in Sources */,
 				A00000000000000000000008 /* VideoSurfaceView.swift in Sources */,
+				A0000000000000000000000D /* LayoutMetrics.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

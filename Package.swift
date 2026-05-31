@@ -13,6 +13,7 @@ let package = Package(
     targets: [
         .systemLibrary(
             name: "CMpv",
+            path: "Packaging/Sources/CMpv",
             pkgConfig: "mpv",
             providers: [
                 .brew(["mpv"])
@@ -21,12 +22,17 @@ let package = Package(
         .executableTarget(
             name: "Valen",
             dependencies: ["CMpv"],
-            path: "Sources/mpvdesk",
+            path: "Packaging/Sources/mpvdesk",
             linkerSettings: [
                 .linkedFramework("AppKit"),
                 .linkedFramework("OpenGL"),
                 .linkedFramework("SwiftUI")
             ]
+        ),
+        .testTarget(
+            name: "ValenTests",
+            dependencies: ["Valen"],
+            path: "Tests/ValenTests"
         )
     ]
 )

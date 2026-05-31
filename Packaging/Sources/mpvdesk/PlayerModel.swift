@@ -412,7 +412,7 @@ final class PlayerModel: ObservableObject {
         UTType(filenameExtension: "avi")!
     ]
 
-    private static func formatTime(_ seconds: Double) -> String {
+    static func formatTime(_ seconds: Double) -> String {
         guard seconds.isFinite, seconds > 0 else { return "00:00" }
         let total = Int(seconds.rounded())
         let hours = total / 3600
@@ -487,10 +487,14 @@ struct SavedPlaybackState: Codable {
     }
 }
 
-private final class PlaybackStateStore {
-    private let defaultsKey = "dev.valen.player.playbackState.v1"
+final class PlaybackStateStore {
+    private let defaultsKey: String
     private let encoder = JSONEncoder()
     private let decoder = JSONDecoder()
+
+    init(defaultsKey: String = "dev.valen.player.playbackState.v1") {
+        self.defaultsKey = defaultsKey
+    }
 
     func state(for url: URL) -> SavedPlaybackState? {
         states()[key(for: url)]

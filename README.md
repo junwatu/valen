@@ -98,6 +98,16 @@ xcodebuild -project Valen.xcodeproj -scheme Valen -configuration Debug build
 
 The Xcode target uses the same Swift source files as the Swift Package target. It links against Homebrew `libmpv`.
 
+## Test
+
+Run the unit and layout-contract tests:
+
+```bash
+swift test
+```
+
+The tests cover time formatting, media track labels, saved playback state, preference defaults, and stable UI copy/icons/metrics for the empty state and playback overlay.
+
 ## Build Distributable App
 
 ```bash
@@ -113,30 +123,6 @@ The generated app bundle includes `libmpv` and Homebrew runtime dylib dependenci
 
 By default, the bundle is ad-hoc signed for local use.
 
-## Developer ID Signing
-
-For public distribution, sign with a Developer ID Application certificate:
-
-```bash
-SIGN_IDENTITY="Developer ID Application: Your Name (TEAMID)" Scripts/build-app.sh
-```
-
-## Notarization
-
-After building with a Developer ID certificate:
-
-```bash
-APPLE_ID="you@example.com" \
-APPLE_TEAM_ID="TEAMID" \
-APPLE_APP_PASSWORD="xxxx-xxxx-xxxx-xxxx" \
-Scripts/notarize-app.sh
-```
-
-Notarization requires:
-
-- Apple Developer Program account
-- Developer ID Application certificate in Keychain
-- app-specific Apple ID password
 
 ## Sparkle Updates
 

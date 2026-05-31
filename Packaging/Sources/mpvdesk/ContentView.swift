@@ -118,7 +118,7 @@ struct ContentView: View {
     }
 
     private var minControlPanelWidth: CGFloat {
-        player.currentFile == nil ? 420 : 760
+        player.currentFile == nil ? ValenLayoutMetrics.overlayWidthWithoutMedia : ValenLayoutMetrics.overlayWidthWithMedia
     }
 
     private func showControlsTemporarily() {
@@ -284,23 +284,43 @@ private struct EmptyPlayerView: View {
     let openAction: () -> Void
 
     var body: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "play.rectangle")
-                .font(.system(size: 56, weight: .regular))
-                .foregroundStyle(.secondary)
+        VStack(spacing: ValenLayoutMetrics.emptyStateSpacing) {
+            Image(systemName: ValenLayoutMetrics.emptyStateIcon)
+                .font(.system(size: ValenLayoutMetrics.emptyStateIconSize, weight: .regular))
+                .foregroundStyle(.white.opacity(0.56))
+                .scaleEffect(isDropTarget ? 1.05 : 1)
+                .animation(.easeOut(duration: 0.18), value: isDropTarget)
 
-            VStack(spacing: 6) {
-                Text(isDropTarget ? "Drop to play" : "Open a video or audio file")
+            VStack(spacing: ValenLayoutMetrics.emptyStateTextSpacing) {
+                Text(isDropTarget ? ValenLayoutMetrics.emptyStateDropTitle : ValenLayoutMetrics.emptyStateTitle)
                     .font(.title3.weight(.semibold))
+                    .foregroundStyle(.white.opacity(0.94))
 
-                Text("Drag a file here or use Command-O.")
+                Text(ValenLayoutMetrics.emptyStateSubtitle)
+                    .font(.title3.weight(.semibold))
                     .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: 360)
             }
 
-            Button("Open File", action: openAction)
-                .buttonStyle(.borderedProminent)
+            Button(action: openAction) {
+                Label(ValenLayoutMetrics.emptyStateButtonTitle, systemImage: ValenLayoutMetrics.openFileIcon)
+                    .font(.callout.weight(.medium))
+                    .foregroundStyle(.white.opacity(0.92))
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 9)
+                    .background(
+                        Capsule()
+                            .fill(.white.opacity(0.08))
+                    )
+                    .overlay {
+                        Capsule()
+                            .stroke(.white.opacity(0.24))
+                    }
+            }
+            .buttonStyle(.plain)
         }
-        .padding(32)
+        .padding(ValenLayoutMetrics.emptyStatePadding)
     }
 }
 
@@ -357,7 +377,7 @@ private struct FloatingPlaybackControls: View {
                     .frame(height: 20)
                     .overlay(.white.opacity(0.22))
 
-                Image(systemName: "speaker.wave.2")
+                Image(systemName: ValenLayoutMetrics.volumeIcon)
                     .foregroundStyle(.white.opacity(0.78))
 
                 Slider(value: $player.volume, in: 0...100)
@@ -386,7 +406,7 @@ private struct FloatingPlaybackControls: View {
                         }
                     }
                 } label: {
-                    Image(systemName: "music.note.list")
+                    Image(systemName: ValenLayoutMetrics.audioTracksIcon)
                         .font(.system(size: 15, weight: .semibold))
                         .frame(width: 26, height: 26)
                 }
@@ -429,7 +449,7 @@ private struct FloatingPlaybackControls: View {
                 Button {
                     player.openFilePanel()
                 } label: {
-                    Image(systemName: "folder.badge.plus")
+                    Image(systemName: ValenLayoutMetrics.openFileIcon)
                         .font(.system(size: 15, weight: .semibold))
                         .frame(width: 26, height: 26)
                 }
@@ -441,10 +461,10 @@ private struct FloatingPlaybackControls: View {
         .padding(.vertical, 13)
         .background(
             ZStack {
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.black.opacity(0.60))
+                RoundedRectangle(cornerRadius: ValenLayoutMetrics.overlayCornerRadius)
+                    .fill(Color.black.opacity(ValenLayoutMetrics.overlayOpacity))
 
-                RoundedRectangle(cornerRadius: 12)
+                RoundedRectangle(cornerRadius: ValenLayoutMetrics.overlayCornerRadius)
                     .fill(
                         LinearGradient(
                             colors: [
@@ -459,7 +479,7 @@ private struct FloatingPlaybackControls: View {
             }
         )
         .overlay {
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: ValenLayoutMetrics.overlayCornerRadius)
                 .stroke(.white.opacity(0.18))
         }
         .shadow(color: .black.opacity(0.45), radius: 20, x: 0, y: 10)
@@ -476,7 +496,7 @@ private struct FloatingPlaybackControls: View {
     }
 
     private var subtitleIcon: String {
-        player.selectedSubtitleID == nil ? "captions.bubble" : "captions.bubble.fill"
+        player.selectedSubtitleID == nil ? ValenLayoutMetrics.subtitlesInactiveIcon : ValenLayoutMetrics.subtitlesActiveIcon
     }
 }
 
@@ -487,7 +507,7 @@ private struct AppInfoButton: View {
         Button {
             appInfoVisible.toggle()
         } label: {
-            Image(systemName: "info.circle")
+            Image(systemName: ValenLayoutMetrics.appInfoIcon)
                 .font(.system(size: 16, weight: .semibold))
                 .frame(width: 26, height: 26)
         }
