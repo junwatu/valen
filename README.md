@@ -50,6 +50,22 @@ You also need Xcode or the Xcode Command Line Tools with Swift 6 available.
 swift run valen
 ```
 
+## Xcode App Target
+
+Valen also includes a native Xcode app target:
+
+```bash
+open Valen.xcodeproj
+```
+
+Or build it from the command line:
+
+```bash
+xcodebuild -project Valen.xcodeproj -scheme Valen -configuration Debug build
+```
+
+The Xcode target uses the same Swift source files as the Swift Package target. It links against Homebrew `libmpv`, so install mpv first with `brew install mpv`.
+
 ## Build App Bundle
 
 ```bash
@@ -103,6 +119,7 @@ Before shipping auto-updates, replace the example feed URL with your real hosted
 ## Project Layout
 
 ```text
+Valen.xcodeproj/
 Package.swift
 Sources/
   CMpv/
@@ -117,6 +134,10 @@ Sources/
     SparkleUpdater.swift
     VideoSurfaceView.swift
 Icons/
+Xcode/
+  Valen-Info.plist
+  Resources/
+    Valen.icns
 Packaging/
   Valen.entitlements
   appcast.example.xml

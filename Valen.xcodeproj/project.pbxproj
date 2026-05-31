@@ -1,0 +1,336 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		A00000000000000000000001 /* AppPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000021 /* AppPreferences.swift */; };
+		A00000000000000000000002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000022 /* ContentView.swift */; };
+		A00000000000000000000003 /* MPVClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000023 /* MPVClient.swift */; };
+		A00000000000000000000004 /* MpvdeskApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000024 /* MpvdeskApp.swift */; };
+		A00000000000000000000005 /* PlayerModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000025 /* PlayerModel.swift */; };
+		A00000000000000000000006 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000026 /* SettingsView.swift */; };
+		A00000000000000000000007 /* SparkleUpdater.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000027 /* SparkleUpdater.swift */; };
+		A00000000000000000000008 /* VideoSurfaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000028 /* VideoSurfaceView.swift */; };
+		A00000000000000000000009 /* Valen.icns in Resources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000029 /* Valen.icns */; };
+		A0000000000000000000000A /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A0000000000000000000002A /* AppKit.framework */; };
+		A0000000000000000000000B /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A0000000000000000000002B /* OpenGL.framework */; };
+		A0000000000000000000000C /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A0000000000000000000002C /* SwiftUI.framework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		A00000000000000000000010 /* Valen.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Valen.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A00000000000000000000021 /* AppPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppPreferences.swift; sourceTree = "<group>"; };
+		A00000000000000000000022 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		A00000000000000000000023 /* MPVClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MPVClient.swift; sourceTree = "<group>"; };
+		A00000000000000000000024 /* MpvdeskApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MpvdeskApp.swift; sourceTree = "<group>"; };
+		A00000000000000000000025 /* PlayerModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerModel.swift; sourceTree = "<group>"; };
+		A00000000000000000000026 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		A00000000000000000000027 /* SparkleUpdater.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SparkleUpdater.swift; sourceTree = "<group>"; };
+		A00000000000000000000028 /* VideoSurfaceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoSurfaceView.swift; sourceTree = "<group>"; };
+		A00000000000000000000029 /* Valen.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = Valen.icns; sourceTree = "<group>"; };
+		A0000000000000000000002A /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
+		A0000000000000000000002B /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
+		A0000000000000000000002C /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		A0000000000000000000002D /* Valen-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Valen-Info.plist"; sourceTree = "<group>"; };
+		A0000000000000000000002E /* Valen.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = Valen.entitlements; path = Packaging/Valen.entitlements; sourceTree = SOURCE_ROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		A00000000000000000000030 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A0000000000000000000000A /* AppKit.framework in Frameworks */,
+				A0000000000000000000000B /* OpenGL.framework in Frameworks */,
+				A0000000000000000000000C /* SwiftUI.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		A00000000000000000000040 = {
+			isa = PBXGroup;
+			children = (
+				A00000000000000000000041 /* Sources */,
+				A00000000000000000000042 /* Xcode */,
+				A00000000000000000000043 /* Frameworks */,
+				A00000000000000000000044 /* Products */,
+				A0000000000000000000002E /* Valen.entitlements */,
+			);
+			sourceTree = "<group>";
+		};
+		A00000000000000000000041 /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				A00000000000000000000045 /* mpvdesk */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+		A00000000000000000000042 /* Xcode */ = {
+			isa = PBXGroup;
+			children = (
+				A0000000000000000000002D /* Valen-Info.plist */,
+				A00000000000000000000046 /* Resources */,
+			);
+			path = Xcode;
+			sourceTree = "<group>";
+		};
+		A00000000000000000000043 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				A0000000000000000000002A /* AppKit.framework */,
+				A0000000000000000000002B /* OpenGL.framework */,
+				A0000000000000000000002C /* SwiftUI.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		A00000000000000000000044 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A00000000000000000000010 /* Valen.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		A00000000000000000000045 /* mpvdesk */ = {
+			isa = PBXGroup;
+			children = (
+				A00000000000000000000021 /* AppPreferences.swift */,
+				A00000000000000000000022 /* ContentView.swift */,
+				A00000000000000000000023 /* MPVClient.swift */,
+				A00000000000000000000024 /* MpvdeskApp.swift */,
+				A00000000000000000000025 /* PlayerModel.swift */,
+				A00000000000000000000026 /* SettingsView.swift */,
+				A00000000000000000000027 /* SparkleUpdater.swift */,
+				A00000000000000000000028 /* VideoSurfaceView.swift */,
+			);
+			path = mpvdesk;
+			sourceTree = "<group>";
+		};
+		A00000000000000000000046 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				A00000000000000000000029 /* Valen.icns */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		A00000000000000000000050 /* Valen */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A00000000000000000000070 /* Build configuration list for PBXNativeTarget "Valen" */;
+			buildPhases = (
+				A00000000000000000000060 /* Sources */,
+				A00000000000000000000030 /* Frameworks */,
+				A00000000000000000000061 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Valen;
+			productName = Valen;
+			productReference = A00000000000000000000010 /* Valen.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		A00000000000000000000051 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1630;
+				LastUpgradeCheck = 1630;
+				TargetAttributes = {
+					A00000000000000000000050 = {
+						CreatedOnToolsVersion = 16.3;
+					};
+				};
+			};
+			buildConfigurationList = A00000000000000000000071 /* Build configuration list for PBXProject "Valen" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = A00000000000000000000040;
+			productRefGroup = A00000000000000000000044 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				A00000000000000000000050 /* Valen */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		A00000000000000000000061 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A00000000000000000000009 /* Valen.icns in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		A00000000000000000000060 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A00000000000000000000001 /* AppPreferences.swift in Sources */,
+				A00000000000000000000002 /* ContentView.swift in Sources */,
+				A00000000000000000000003 /* MPVClient.swift in Sources */,
+				A00000000000000000000004 /* MpvdeskApp.swift in Sources */,
+				A00000000000000000000005 /* PlayerModel.swift in Sources */,
+				A00000000000000000000006 /* SettingsView.swift in Sources */,
+				A00000000000000000000007 /* SparkleUpdater.swift in Sources */,
+				A00000000000000000000008 /* VideoSurfaceView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		A00000000000000000000080 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
+				INFOPLIST_FILE = "Xcode/Valen-Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"/opt/homebrew/lib",
+					"/usr/local/lib",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"/opt/homebrew/lib",
+					"/usr/local/lib",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 0.1.0;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-lmpv",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = dev.valen.player;
+				PRODUCT_NAME = Valen;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_INCLUDE_PATHS = "$(SRCROOT)/Sources/CMpv";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		A00000000000000000000081 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = Packaging/Valen.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
+				INFOPLIST_FILE = "Xcode/Valen-Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"/opt/homebrew/lib",
+					"/usr/local/lib",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"/opt/homebrew/lib",
+					"/usr/local/lib",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 0.1.0;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-lmpv",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = dev.valen.player;
+				PRODUCT_NAME = Valen;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_INCLUDE_PATHS = "$(SRCROOT)/Sources/CMpv";
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		A00000000000000000000082 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_TESTABILITY = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		A00000000000000000000083 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				SDKROOT = macosx;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		A00000000000000000000070 /* Build configuration list for PBXNativeTarget "Valen" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A00000000000000000000080 /* Debug */,
+				A00000000000000000000081 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A00000000000000000000071 /* Build configuration list for PBXProject "Valen" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A00000000000000000000082 /* Debug */,
+				A00000000000000000000083 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = A00000000000000000000051 /* Project object */;
+}
