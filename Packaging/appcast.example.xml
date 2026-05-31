@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
+  <channel>
+    <title>Valen Updates</title>
+    <link>https://example.com/valen/appcast.xml</link>
+    <description>Valen release feed</description>
+    <item>
+      <title>Version 0.1.0</title>
+      <sparkle:version>1</sparkle:version>
+      <sparkle:shortVersionString>0.1.0</sparkle:shortVersionString>
+      <pubDate>Sun, 31 May 2026 00:00:00 +0700</pubDate>
+      <enclosure
+        url="https://example.com/valen/Valen-0.1.0-macos-arm64.zip"
+        sparkle:edSignature="REPLACE_WITH_SPARKLE_SIGNATURE"
+        length="REPLACE_WITH_ZIP_SIZE"
+        type="application/octet-stream" />
+    </item>
+  </channel>
+</rss>

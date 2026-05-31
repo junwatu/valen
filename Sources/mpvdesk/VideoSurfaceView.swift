@@ -3,6 +3,11 @@ import CMpv
 import OpenGL.GL3
 import SwiftUI
 
+@MainActor
+protocol VideoRenderSurface: AnyObject {
+    func scheduleRender()
+}
+
 struct VideoSurfaceView: NSViewRepresentable {
     @EnvironmentObject private var player: PlayerModel
 
@@ -17,7 +22,7 @@ struct VideoSurfaceView: NSViewRepresentable {
     }
 }
 
-final class MPVHostView: NSOpenGLView {
+final class MPVHostView: NSOpenGLView, VideoRenderSurface {
     private weak var mpv: MPVClient?
     private var didPrepareMpv = false
 

@@ -9,7 +9,7 @@ final class PlayerModel: ObservableObject {
     @Published var isPaused = true
     @Published var position: Double = 0
     @Published var duration: Double = 0
-    @Published var volume: Double = 80
+    @Published var volume: Double = AppPreferences.defaultVolume
     @Published var audioTracks: [MediaTrack] = []
     @Published var subtitleTracks: [MediaTrack] = []
     @Published var selectedAudioID: Int?
@@ -43,6 +43,9 @@ final class PlayerModel: ObservableObject {
     }
 
     init() {
+        AppPreferences.registerDefaults()
+        volume = AppPreferences.defaultVolume
+
         do {
             try mpv.initialize()
             try mpv.setDouble("volume", value: volume)
@@ -107,7 +110,7 @@ final class PlayerModel: ObservableObject {
             subtitleTracks = []
             selectedAudioID = nil
             selectedSubtitleID = nil
-            pendingRestoreState = playbackStateStore.state(for: url)
+            pendingRestoreState = AppPreferences.resumePlayback ? playbackStateStore.state(for: url) : nil
             didApplyRestoreState = false
             log("Loading file: \(url.path)")
             if let pendingRestoreState {
@@ -122,10 +125,20 @@ final class PlayerModel: ObservableObject {
     }
 
     func togglePlayPause() {
+        guard currentFile != nil else {
+            isPaused = true
+            return
+        }
+
         setPaused(!isPaused)
     }
 
     func setPaused(_ paused: Bool) {
+        guard currentFile != nil else {
+            isPaused = true
+            return
+        }
+
         do {
             isPaused = paused
             try mpv.setFlag("pause", value: paused)
@@ -135,6 +148,8 @@ final class PlayerModel: ObservableObject {
     }
 
     func seek(relativeSeconds: Double) {
+        guard currentFile != nil else { return }
+
         do {
             try mpv.command(["seek", String(relativeSeconds), "relative"])
         } catch {
@@ -143,6 +158,8 @@ final class PlayerModel: ObservableObject {
     }
 
     func scrub(to seconds: Double) {
+        guard currentFile != nil else { return }
+
         position = seconds
         do {
             try mpv.command(["seek", String(seconds), "absolute"])
@@ -211,10 +228,10 @@ final class PlayerModel: ObservableObject {
                 self.togglePlayPause()
                 return nil
             case 123:
-                self.seek(relativeSeconds: -10)
+                self.seek(relativeSeconds: -AppPreferences.keyboardSeekSeconds)
                 return nil
             case 124:
-                self.seek(relativeSeconds: 10)
+                self.seek(relativeSeconds: AppPreferences.keyboardSeekSeconds)
                 return nil
             default:
                 return event
@@ -225,6 +242,13 @@ final class PlayerModel: ObservableObject {
     private func pollState() {
         for line in mpv.drainEvents() {
             log(line)
+        }
+
+        guard currentFile != nil else {
+            isPaused = true
+            position = 0
+            duration = 0
+            return
         }
 
         position = mpv.getDouble("time-pos") ?? position
@@ -311,17 +335,22 @@ final class PlayerModel: ObservableObject {
             return
         }
 
+        guard AppPreferences.resumePlayback else {
+            return
+        }
+
         guard didApplyRestoreState || pendingRestoreState == nil else {
             return
         }
 
         let sid = mpv.getString("sid")
+        let shouldRememberTracks = AppPreferences.rememberTrackSelection
         let state = SavedPlaybackState(
             position: position,
             duration: duration,
-            audioTrackID: selectedAudioID,
-            subtitleTrackID: selectedSubtitleID,
-            subtitlesOff: sid == "no",
+            audioTrackID: shouldRememberTracks ? selectedAudioID : nil,
+            subtitleTrackID: shouldRememberTracks ? selectedSubtitleID : nil,
+            subtitlesOff: shouldRememberTracks && sid == "no",
             volume: volume,
             updatedAt: Date()
         )

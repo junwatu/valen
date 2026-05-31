@@ -14,6 +14,7 @@ It is designed as a clean, keyboard-friendly desktop player with a compact Quick
 - MKV, WebM, MP4, MOV, AVI, FLAC, OGG, WAV, and common media extension support
 - Compact translucent playback overlay
 - Auto-hide controls during playback when the pointer is idle
+- Native Settings window for playback defaults, seek distance, resume behavior, and overlay auto-hide timing
 - Keyboard shortcuts:
   - `Space`: play / pause
   - `Left Arrow`: seek back 10 seconds
@@ -28,6 +29,8 @@ It is designed as a clean, keyboard-friendly desktop player with a compact Quick
   - volume
 - Debug log panel for mpv diagnostics
 - App bundle generation with bundled Homebrew `libmpv` dylib dependencies
+
+The keyboard seek distance can be changed in `Valen > Settings`.
 
 ## Screenshots
 
@@ -60,7 +63,42 @@ This creates:
 
 The app bundle includes `libmpv` and its Homebrew runtime dylib dependencies under `Contents/Frameworks`.
 
-The bundle is ad-hoc signed for local use. For public distribution outside your machine, sign with an Apple Developer ID certificate and notarize it so Gatekeeper accepts it without warnings.
+By default, the bundle is ad-hoc signed for local use.
+
+For Developer ID signing:
+
+```bash
+SIGN_IDENTITY="Developer ID Application: Your Name (TEAMID)" Scripts/build-app.sh
+```
+
+To include a Sparkle feed URL in the app bundle:
+
+```bash
+SPARKLE_FEED_URL="https://your-domain.com/valen/appcast.xml" Scripts/build-app.sh
+```
+
+For notarization:
+
+```bash
+APPLE_ID="you@example.com" \
+APPLE_TEAM_ID="TEAMID" \
+APPLE_APP_PASSWORD="xxxx-xxxx-xxxx-xxxx" \
+Scripts/notarize-app.sh
+```
+
+Notarization requires an Apple Developer Program account, a Developer ID Application certificate in Keychain, and an app-specific Apple ID password.
+
+## Sparkle Updates
+
+Sparkle update scaffolding is included:
+
+- `Sources/mpvdesk/SparkleUpdater.swift`
+- `Packaging/appcast.example.xml`
+- optional `SUFeedURL` in the generated `Info.plist`
+
+The update menu is enabled automatically when the app target links Sparkle. The current Swift Package build keeps Sparkle optional so local builds do not fail without the framework.
+
+Before shipping auto-updates, replace the example feed URL with your real hosted `appcast.xml`, sign releases with Sparkle's EdDSA signing tool, and embed Sparkle in a real Xcode app target.
 
 ## Project Layout
 
@@ -70,19 +108,28 @@ Sources/
   CMpv/
     module.modulemap
   mpvdesk/
+    AppPreferences.swift
     ContentView.swift
     MPVClient.swift
     MpvdeskApp.swift
     PlayerModel.swift
+    SettingsView.swift
+    SparkleUpdater.swift
     VideoSurfaceView.swift
 Icons/
+Packaging/
+  Valen.entitlements
+  appcast.example.xml
 Scripts/
   build-app.sh
+  notarize-app.sh
 ```
 
 ## Notes
 
 Valen currently uses `NSOpenGLView` because mpv exposes a stable OpenGL render API. Apple deprecates OpenGL, so a future production version should move the rendering surface to Metal once the mpv build and render API path support it cleanly.
+
+See [Docs/Rendering.md](Docs/Rendering.md) for the rendering roadmap and Metal investigation checklist.
 
 The generated app bundle is intentionally ignored by git. Build artifacts live in `dist/` and can be recreated with `Scripts/build-app.sh`.
 

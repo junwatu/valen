@@ -2,6 +2,8 @@ import SwiftUI
 
 struct ContentView: View {
     @EnvironmentObject private var player: PlayerModel
+    @AppStorage(AppPreferenceKeys.autoHideControls) private var autoHideControls = true
+    @AppStorage(AppPreferenceKeys.autoHideDelay) private var autoHideDelay = 2.0
     @State private var isDropTarget = false
     @State private var isPointerInside = false
     @State private var isPointerActive = true
@@ -91,12 +93,12 @@ struct ContentView: View {
         isPointerActive = true
         hideControlsTask?.cancel()
 
-        guard !player.isPaused, player.currentFile != nil, !player.isDebugVisible else {
+        guard autoHideControls, !player.isPaused, player.currentFile != nil, !player.isDebugVisible else {
             return
         }
 
         hideControlsTask = Task { @MainActor in
-            try? await Task.sleep(for: .seconds(2))
+            try? await Task.sleep(for: .seconds(autoHideDelay))
             guard !Task.isCancelled else { return }
             isPointerActive = false
         }
@@ -223,12 +225,13 @@ private struct FloatingPlaybackControls: View {
                 Button {
                     player.togglePlayPause()
                 } label: {
-                    Image(systemName: player.isPaused ? "play.fill" : "pause.fill")
+                    Image(systemName: playPauseIcon)
                         .font(.system(size: 17, weight: .semibold))
                         .frame(width: 26, height: 26)
                 }
                 .keyboardShortcut(.space, modifiers: [])
-                .help(player.isPaused ? "Play" : "Pause")
+                .disabled(player.currentFile == nil)
+                .help(playPauseHelp)
 
                 Divider()
                     .frame(height: 20)
@@ -341,6 +344,16 @@ private struct FloatingPlaybackControls: View {
                 .stroke(.white.opacity(0.18))
         }
         .shadow(color: .black.opacity(0.45), radius: 20, x: 0, y: 10)
+    }
+
+    private var playPauseIcon: String {
+        guard player.currentFile != nil else { return "play.fill" }
+        return player.isPaused ? "play.fill" : "pause.fill"
+    }
+
+    private var playPauseHelp: String {
+        guard player.currentFile != nil else { return "Open a file to play" }
+        return player.isPaused ? "Play" : "Pause"
     }
 }
 

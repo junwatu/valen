@@ -28,7 +28,7 @@ enum MPVError: LocalizedError {
 final class MPVClient {
     private var handle: OpaquePointer?
     private var renderContext: OpaquePointer?
-    private weak var renderTarget: MPVHostView?
+    private weak var renderTarget: (any VideoRenderSurface)?
 
     func initialize() throws {
         guard handle == nil else { return }

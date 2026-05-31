@@ -3,14 +3,21 @@ set -euo pipefail
 
 APP_NAME="Valen"
 EXECUTABLE_NAME="valen"
+BUNDLE_ID="${BUNDLE_ID:-dev.valen.player}"
+VERSION="${VERSION:-0.1.0}"
+BUILD_NUMBER="${BUILD_NUMBER:-1}"
+SIGN_IDENTITY="${SIGN_IDENTITY:--}"
+SPARKLE_FEED_URL="${SPARKLE_FEED_URL:-}"
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BUILD_DIR="$ROOT_DIR/.build/release"
 DIST_DIR="$ROOT_DIR/dist"
 APP_DIR="$DIST_DIR/$APP_NAME.app"
+ZIP_PATH="$DIST_DIR/$APP_NAME-$VERSION-macos-arm64.zip"
 CONTENTS_DIR="$APP_DIR/Contents"
 MACOS_DIR="$CONTENTS_DIR/MacOS"
 FRAMEWORKS_DIR="$CONTENTS_DIR/Frameworks"
 RESOURCES_DIR="$CONTENTS_DIR/Resources"
+ENTITLEMENTS_FILE="$ROOT_DIR/Packaging/Valen.entitlements"
 ICON_SOURCE="$ROOT_DIR/Icons/Valen-iOS-Default-1024x1024@1x.png"
 ICONSET_DIR="$DIST_DIR/Valen.iconset"
 ICON_FILE="$RESOURCES_DIR/Valen.icns"
@@ -36,7 +43,7 @@ cat > "$CONTENTS_DIR/Info.plist" <<PLIST
   <key>CFBundleExecutable</key>
   <string>$EXECUTABLE_NAME</string>
   <key>CFBundleIdentifier</key>
-  <string>dev.valen.player</string>
+  <string>$BUNDLE_ID</string>
   <key>CFBundleInfoDictionaryVersion</key>
   <string>6.0</string>
   <key>CFBundleIconFile</key>
@@ -46,9 +53,9 @@ cat > "$CONTENTS_DIR/Info.plist" <<PLIST
   <key>CFBundlePackageType</key>
   <string>APPL</string>
   <key>CFBundleShortVersionString</key>
-  <string>0.1.0</string>
+  <string>$VERSION</string>
   <key>CFBundleVersion</key>
-  <string>1</string>
+  <string>$BUILD_NUMBER</string>
   <key>CFBundleDocumentTypes</key>
   <array>
     <dict>
@@ -80,6 +87,13 @@ cat > "$CONTENTS_DIR/Info.plist" <<PLIST
   <string>14.0</string>
   <key>NSHighResolutionCapable</key>
   <true/>
+$(if [[ -n "$SPARKLE_FEED_URL" ]]; then cat <<SPARKLE_PLIST
+  <key>SUEnableInstallerLauncherService</key>
+  <true/>
+  <key>SUFeedURL</key>
+  <string>$SPARKLE_FEED_URL</string>
+SPARKLE_PLIST
+fi)
   <key>NSSupportsAutomaticGraphicsSwitching</key>
   <true/>
 </dict>
@@ -151,6 +165,14 @@ for dylib in "$FRAMEWORKS_DIR"/*.dylib; do
   rewrite_load_paths "$dylib" "$(basename "$dylib")"
 done
 
-codesign --force --deep --sign - "$APP_DIR"
+if [[ "$SIGN_IDENTITY" == "-" ]]; then
+  codesign --force --deep --sign - "$APP_DIR"
+else
+  codesign --force --deep --options runtime --timestamp --entitlements "$ENTITLEMENTS_FILE" --sign "$SIGN_IDENTITY" "$APP_DIR"
+fi
+
+codesign --verify --deep --strict --verbose=2 "$APP_DIR"
+ditto -c -k --sequesterRsrc --keepParent "$APP_DIR" "$ZIP_PATH"
 
 echo "Built $APP_DIR"
+echo "Created $ZIP_PATH"

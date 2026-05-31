@@ -4,6 +4,11 @@ import SwiftUI
 struct ValenApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @StateObject private var player = PlayerModel()
+    @StateObject private var updater = SparkleUpdaterController()
+
+    init() {
+        AppPreferences.registerDefaults()
+    }
 
     var body: some Scene {
         WindowGroup {
@@ -36,6 +41,18 @@ struct ValenApp: App {
                 }
                 .keyboardShortcut(.rightArrow, modifiers: [])
             }
+
+            CommandGroup(after: .appInfo) {
+                if updater.isAvailable {
+                    Button("Check for Updates...") {
+                        updater.checkForUpdates()
+                    }
+                }
+            }
+        }
+
+        Settings {
+            SettingsView()
         }
     }
 }
