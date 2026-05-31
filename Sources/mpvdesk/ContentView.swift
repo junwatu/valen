@@ -7,12 +7,21 @@ struct ContentView: View {
     @State private var isDropTarget = false
     @State private var isPointerInside = false
     @State private var isPointerActive = true
+    @State private var isCursorHidden = false
     @State private var hideControlsTask: Task<Void, Never>?
 
     var body: some View {
         ZStack {
             VideoSurfaceView()
                 .environmentObject(player)
+                .contentShape(Rectangle())
+                .onTapGesture(count: 2) {
+                    player.toggleFullscreen()
+                }
+
+            WindowStateReader()
+                .environmentObject(player)
+                .frame(width: 0, height: 0)
 
             if player.currentFile == nil {
                 EmptyPlayerView(isDropTarget: isDropTarget) {
@@ -68,6 +77,18 @@ struct ContentView: View {
         .onChange(of: player.currentFile) { _, _ in
             showControlsTemporarily()
         }
+        .onChange(of: shouldShowControls) { _, _ in
+            updateCursorVisibility()
+        }
+        .onChange(of: player.isPaused) { _, _ in
+            updateCursorVisibility()
+        }
+        .onChange(of: player.currentFile) { _, _ in
+            updateCursorVisibility()
+        }
+        .onDisappear {
+            revealCursorIfNeeded()
+        }
         .onDrop(of: [.fileURL, .movie, .audio], isTargeted: $isDropTarget) { providers in
             player.handleDrop(providers)
         }
@@ -101,6 +122,92 @@ struct ContentView: View {
             try? await Task.sleep(for: .seconds(autoHideDelay))
             guard !Task.isCancelled else { return }
             isPointerActive = false
+            updateCursorVisibility()
+        }
+    }
+
+    private func updateCursorVisibility() {
+        let shouldHideCursor = player.currentFile != nil && !player.isPaused && !shouldShowControls
+
+        if shouldHideCursor, !isCursorHidden {
+            NSCursor.hide()
+            isCursorHidden = true
+        } else if !shouldHideCursor {
+            revealCursorIfNeeded()
+        }
+    }
+
+    private func revealCursorIfNeeded() {
+        guard isCursorHidden else { return }
+        NSCursor.unhide()
+        isCursorHidden = false
+    }
+}
+
+private struct WindowStateReader: NSViewRepresentable {
+    @EnvironmentObject private var player: PlayerModel
+
+    func makeNSView(context: Context) -> NSView {
+        let view = NSView(frame: .zero)
+        context.coordinator.attach(to: view, player: player)
+        return view
+    }
+
+    func updateNSView(_ nsView: NSView, context: Context) {
+        context.coordinator.attach(to: nsView, player: player)
+    }
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator()
+    }
+
+    @MainActor
+    final class Coordinator {
+        private weak var view: NSView?
+        private weak var player: PlayerModel?
+        private nonisolated(unsafe) var observers: [NSObjectProtocol] = []
+
+        deinit {
+            for observer in observers {
+                NotificationCenter.default.removeObserver(observer)
+            }
+        }
+
+        func attach(to view: NSView, player: PlayerModel) {
+            self.view = view
+            self.player = player
+
+            DispatchQueue.main.async { [weak self] in
+                self?.observeWindowIfNeeded()
+            }
+        }
+
+        private func observeWindowIfNeeded() {
+            guard observers.isEmpty, let window = view?.window else { return }
+
+            player?.isFullscreen = window.styleMask.contains(.fullScreen)
+
+            let didEnter = NotificationCenter.default.addObserver(
+                forName: NSWindow.didEnterFullScreenNotification,
+                object: window,
+                queue: .main
+            ) { [weak self] _ in
+                Task { @MainActor in
+                    self?.player?.isFullscreen = true
+                }
+            }
+
+            let didExit = NotificationCenter.default.addObserver(
+                forName: NSWindow.didExitFullScreenNotification,
+                object: window,
+                queue: .main
+            ) { [weak self] _ in
+                Task { @MainActor in
+                    self?.player?.isFullscreen = false
+                }
+            }
+
+            observers = [didEnter, didExit]
         }
     }
 }

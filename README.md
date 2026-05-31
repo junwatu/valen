@@ -19,6 +19,9 @@ It is designed as a clean, keyboard-friendly desktop player with a compact Quick
   - `Space`: play / pause
   - `Left Arrow`: seek back 10 seconds
   - `Right Arrow`: seek forward 10 seconds
+  - `Control-Command-F`: enter / exit full screen
+  - `Escape`: exit full screen
+- Double-click video to enter / exit full screen
 - Audio track selector
 - Subtitle track selector
 - Per-video saved state:

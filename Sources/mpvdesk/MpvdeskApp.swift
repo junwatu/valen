@@ -40,6 +40,11 @@ struct ValenApp: App {
                     player.seek(relativeSeconds: 10)
                 }
                 .keyboardShortcut(.rightArrow, modifiers: [])
+
+                Button(player.isFullscreen ? "Exit Full Screen" : "Enter Full Screen") {
+                    player.toggleFullscreen()
+                }
+                .keyboardShortcut("f", modifiers: [.command, .control])
             }
 
             CommandGroup(after: .appInfo) {

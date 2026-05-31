@@ -16,6 +16,7 @@ final class PlayerModel: ObservableObject {
     @Published var selectedSubtitleID: Int?
     @Published var debugLines: [String] = []
     @Published var isDebugVisible = false
+    @Published var isFullscreen = false
     @Published var errorMessage: String?
 
     private let mpv = MPVClient()
@@ -122,6 +123,10 @@ final class PlayerModel: ObservableObject {
             errorMessage = error.localizedDescription
             log("Load failed: \(error.localizedDescription)")
         }
+    }
+
+    func toggleFullscreen() {
+        NSApp.keyWindow?.toggleFullScreen(nil)
     }
 
     func togglePlayPause() {
@@ -233,6 +238,12 @@ final class PlayerModel: ObservableObject {
             case 124:
                 self.seek(relativeSeconds: AppPreferences.keyboardSeekSeconds)
                 return nil
+            case 53:
+                if self.isFullscreen {
+                    self.toggleFullscreen()
+                    return nil
+                }
+                return event
             default:
                 return event
             }
