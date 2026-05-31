@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 struct ContentView: View {
@@ -8,6 +9,7 @@ struct ContentView: View {
     @State private var isPointerInside = false
     @State private var isPointerActive = true
     @State private var isCursorHidden = false
+    @State private var isAppInfoVisible = false
     @State private var hideControlsTask: Task<Void, Never>?
 
     var body: some View {
@@ -39,7 +41,7 @@ struct ContentView: View {
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
 
-                FloatingPlaybackControls()
+                FloatingPlaybackControls(appInfoVisible: $isAppInfoVisible)
                     .environmentObject(player)
                     .fixedSize(horizontal: true, vertical: false)
                     .frame(maxWidth: minControlPanelWidth, alignment: .center)
@@ -86,6 +88,14 @@ struct ContentView: View {
         .onChange(of: player.currentFile) { _, _ in
             updateCursorVisibility()
         }
+        .onChange(of: isAppInfoVisible) { _, visible in
+            if visible {
+                hideControlsTask?.cancel()
+                isPointerActive = true
+            } else {
+                showControlsTemporarily()
+            }
+        }
         .onDisappear {
             revealCursorIfNeeded()
         }
@@ -103,7 +113,7 @@ struct ContentView: View {
     }
 
     private var shouldShowControls: Bool {
-        player.isPaused || player.currentFile == nil || player.isDebugVisible || isPointerActive
+        player.isPaused || player.currentFile == nil || player.isDebugVisible || isAppInfoVisible || isPointerActive
     }
 
     private var minControlPanelWidth: CGFloat {
@@ -114,7 +124,7 @@ struct ContentView: View {
         isPointerActive = true
         hideControlsTask?.cancel()
 
-        guard autoHideControls, !player.isPaused, player.currentFile != nil, !player.isDebugVisible else {
+        guard autoHideControls, !player.isPaused, player.currentFile != nil, !player.isDebugVisible, !isAppInfoVisible else {
             return
         }
 
@@ -294,6 +304,7 @@ private struct EmptyPlayerView: View {
 
 private struct FloatingPlaybackControls: View {
     @EnvironmentObject private var player: PlayerModel
+    @Binding var appInfoVisible: Bool
 
     var body: some View {
         VStack(spacing: 10) {
@@ -422,6 +433,16 @@ private struct FloatingPlaybackControls: View {
                     Image(systemName: "folder")
                 }
                 .help("Open file")
+
+                Button {
+                    appInfoVisible.toggle()
+                } label: {
+                    Image(systemName: "questionmark.circle")
+                }
+                .help("About Valen")
+                .popover(isPresented: $appInfoVisible, arrowEdge: .bottom) {
+                    AppInfoPopover()
+                }
             }
             .buttonStyle(.quickTimeOverlay)
         }
@@ -461,6 +482,84 @@ private struct FloatingPlaybackControls: View {
     private var playPauseHelp: String {
         guard player.currentFile != nil else { return "Open a file to play" }
         return player.isPaused ? "Play" : "Pause"
+    }
+}
+
+private struct AppInfoPopover: View {
+    private let info = AppInfo.current
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(spacing: 12) {
+                Image(nsImage: NSApp.applicationIconImage)
+                    .resizable()
+                    .frame(width: 46, height: 46)
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(info.name)
+                        .font(.title3.weight(.semibold))
+
+                    Text("Version \(info.version) (\(info.build))")
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                }
+            }
+
+            Divider()
+
+            VStack(alignment: .leading, spacing: 8) {
+                InfoRow(label: "Player", value: "libmpv")
+                InfoRow(label: "Interface", value: "SwiftUI")
+                InfoRow(label: "Renderer", value: "OpenGL via mpv_render_context")
+                InfoRow(label: "Bundle ID", value: info.bundleIdentifier)
+            }
+        }
+        .padding(16)
+        .frame(width: 320)
+    }
+}
+
+private struct InfoRow: View {
+    let label: String
+    let value: String
+
+    var body: some View {
+        HStack(alignment: .top) {
+            Text(label)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+                .frame(width: 72, alignment: .leading)
+
+            Text(value)
+                .font(.caption)
+                .textSelection(.enabled)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+}
+
+private struct AppInfo {
+    let name: String
+    let version: String
+    let build: String
+    let bundleIdentifier: String
+
+    static var current: AppInfo {
+        let info = Bundle.main.infoDictionary ?? [:]
+        let name = info["CFBundleDisplayName"] as? String
+            ?? info["CFBundleName"] as? String
+            ?? "Valen"
+        let version = info["CFBundleShortVersionString"] as? String ?? "Development"
+        let build = info["CFBundleVersion"] as? String ?? "local"
+        let bundleIdentifier = Bundle.main.bundleIdentifier ?? "dev.valen.player"
+
+        return AppInfo(
+            name: name,
+            version: version,
+            build: build,
+            bundleIdentifier: bundleIdentifier
+        )
     }
 }
 

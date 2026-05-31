@@ -2,28 +2,27 @@
 
 Valen is a native macOS media player built with SwiftUI and powered by `libmpv`.
 
-It is designed as a clean, keyboard-friendly desktop player with a compact QuickTime-style overlay, direct mpv playback, audio/subtitle selection, and per-file resume state.
+It focuses on a clean video-first interface, keyboard-friendly playback, MKV support, audio/subtitle selection, and per-video resume state.
 
 ## Features
 
-- Native SwiftUI macOS interface
-- mpv-backed playback through `libmpv`
-- Embedded video rendering through `mpv_render_context`
+- Native SwiftUI macOS app
+- Real Xcode app target: `Valen.xcodeproj`
+- Swift Package target for quick local development
+- mpv playback through `libmpv`
+- Embedded rendering through `mpv_render_context`
+- MKV, WebM, MP4, MOV, AVI, FLAC, OGG, WAV, and common media extension support
+- macOS file association metadata for Finder and Open With
 - Open files with `Command-O`
 - Drag and drop media files
-- MKV, WebM, MP4, MOV, AVI, FLAC, OGG, WAV, and common media extension support
-- Compact translucent playback overlay
-- Auto-hide controls during playback when the pointer is idle
-- Native Settings window for playback defaults, seek distance, resume behavior, and overlay auto-hide timing
-- Keyboard shortcuts:
-  - `Space`: play / pause
-  - `Left Arrow`: seek back 10 seconds
-  - `Right Arrow`: seek forward 10 seconds
-  - `Control-Command-F`: enter / exit full screen
-  - `Escape`: exit full screen
-- Double-click video to enter / exit full screen
+- Compact QuickTime-style translucent overlay controls
+- Overlay auto-hides during playback when the pointer is idle
+- Cursor hides when playback controls hide
+- Fullscreen support through shortcut, double-click, or macOS window controls
 - Audio track selector
 - Subtitle track selector
+- Native Settings window
+- App info popover with version, build, bundle ID, and runtime details
 - Per-video saved state:
   - resume position
   - selected audio track
@@ -31,45 +30,59 @@ It is designed as a clean, keyboard-friendly desktop player with a compact Quick
   - subtitles off/on state
   - volume
 - Debug log panel for mpv diagnostics
-- App bundle generation with bundled Homebrew `libmpv` dylib dependencies
+- App bundle generation with bundled Homebrew `libmpv` runtime libraries
+- Developer ID signing and notarization script scaffolding
+- Sparkle auto-update scaffolding
 
-The keyboard seek distance can be changed in `Valen > Settings`.
+## Shortcuts
 
-## Screenshots
+| Shortcut | Action |
+| --- | --- |
+| `Command-O` | Open file |
+| `Space` | Play / pause |
+| `Left Arrow` | Seek backward |
+| `Right Arrow` | Seek forward |
+| `Control-Command-F` | Enter / exit fullscreen |
+| `Escape` | Exit fullscreen |
+| Double-click video | Enter / exit fullscreen |
 
-Screenshots are not committed yet. The app currently uses a dark video-first layout with a compact floating control overlay.
+The seek distance is configurable in `Valen > Settings`.
 
 ## Requirements
+
+Install mpv through Homebrew:
 
 ```bash
 brew install mpv
 ```
 
-You also need Xcode or the Xcode Command Line Tools with Swift 6 available.
+You also need Xcode or Xcode Command Line Tools with Swift 6.
 
-## Run
+## Run With Swift Package
 
 ```bash
 swift run valen
 ```
 
-## Xcode App Target
+This is the fastest development path.
 
-Valen also includes a native Xcode app target:
+## Run With Xcode
+
+Open the native app target:
 
 ```bash
 open Valen.xcodeproj
 ```
 
-Or build it from the command line:
+Or build from the command line:
 
 ```bash
 xcodebuild -project Valen.xcodeproj -scheme Valen -configuration Debug build
 ```
 
-The Xcode target uses the same Swift source files as the Swift Package target. It links against Homebrew `libmpv`, so install mpv first with `brew install mpv`.
+The Xcode target uses the same Swift source files as the Swift Package target. It links against Homebrew `libmpv`.
 
-## Build App Bundle
+## Build Distributable App
 
 ```bash
 Scripts/build-app.sh
@@ -80,23 +93,21 @@ This creates:
 - `dist/Valen.app`
 - `dist/Valen-0.1.0-macos-arm64.zip`
 
-The app bundle includes `libmpv` and its Homebrew runtime dylib dependencies under `Contents/Frameworks`.
+The generated app bundle includes `libmpv` and Homebrew runtime dylib dependencies under `Contents/Frameworks`.
 
 By default, the bundle is ad-hoc signed for local use.
 
-For Developer ID signing:
+## Developer ID Signing
+
+For public distribution, sign with a Developer ID Application certificate:
 
 ```bash
 SIGN_IDENTITY="Developer ID Application: Your Name (TEAMID)" Scripts/build-app.sh
 ```
 
-To include a Sparkle feed URL in the app bundle:
+## Notarization
 
-```bash
-SPARKLE_FEED_URL="https://your-domain.com/valen/appcast.xml" Scripts/build-app.sh
-```
-
-For notarization:
+After building with a Developer ID certificate:
 
 ```bash
 APPLE_ID="you@example.com" \
@@ -105,19 +116,39 @@ APPLE_APP_PASSWORD="xxxx-xxxx-xxxx-xxxx" \
 Scripts/notarize-app.sh
 ```
 
-Notarization requires an Apple Developer Program account, a Developer ID Application certificate in Keychain, and an app-specific Apple ID password.
+Notarization requires:
+
+- Apple Developer Program account
+- Developer ID Application certificate in Keychain
+- app-specific Apple ID password
 
 ## Sparkle Updates
 
-Sparkle update scaffolding is included:
+Sparkle update scaffolding is included, but Sparkle is not fully embedded yet.
+
+Current files:
 
 - `Sources/mpvdesk/SparkleUpdater.swift`
 - `Packaging/appcast.example.xml`
-- optional `SUFeedURL` in the generated `Info.plist`
 
-The update menu is enabled automatically when the app target links Sparkle. The current Swift Package build keeps Sparkle optional so local builds do not fail without the framework.
+To include a Sparkle feed URL in the generated bundle:
 
-Before shipping auto-updates, replace the example feed URL with your real hosted `appcast.xml`, sign releases with Sparkle's EdDSA signing tool, and embed Sparkle in a real Xcode app target.
+```bash
+SPARKLE_FEED_URL="https://your-domain.com/valen/appcast.xml" Scripts/build-app.sh
+```
+
+Before shipping auto-updates:
+
+- embed Sparkle in the Xcode app target
+- host a real `appcast.xml`
+- replace the example feed URL
+- sign release zips with Sparkle's EdDSA signing tool
+
+## Rendering
+
+Valen currently uses `NSOpenGLView` because mpv exposes a stable OpenGL render API. Apple deprecated OpenGL, so the long-term plan is to investigate a Metal-backed rendering surface.
+
+See [Docs/Rendering.md](Docs/Rendering.md) for the rendering roadmap and Metal investigation checklist.
 
 ## Project Layout
 
@@ -136,6 +167,8 @@ Sources/
     SettingsView.swift
     SparkleUpdater.swift
     VideoSurfaceView.swift
+Docs/
+  Rendering.md
 Icons/
 Xcode/
   Valen-Info.plist
@@ -149,13 +182,12 @@ Scripts/
   notarize-app.sh
 ```
 
-## Notes
+## Current Limitations
 
-Valen currently uses `NSOpenGLView` because mpv exposes a stable OpenGL render API. Apple deprecates OpenGL, so a future production version should move the rendering surface to Metal once the mpv build and render API path support it cleanly.
-
-See [Docs/Rendering.md](Docs/Rendering.md) for the rendering roadmap and Metal investigation checklist.
-
-The generated app bundle is intentionally ignored by git. Build artifacts live in `dist/` and can be recreated with `Scripts/build-app.sh`.
+- OpenGL rendering works but produces deprecation warnings.
+- Public distribution still needs real Developer ID signing and notarization.
+- Sparkle update code is scaffolded, but the framework still needs to be embedded in the Xcode target.
+- The shell bundle script is still the main distributable build path.
 
 ## License
 

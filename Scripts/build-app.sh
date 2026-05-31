@@ -61,6 +61,8 @@ cat > "$CONTENTS_DIR/Info.plist" <<PLIST
     <dict>
       <key>CFBundleTypeName</key>
       <string>Media File</string>
+      <key>CFBundleTypeIconFile</key>
+      <string>Valen</string>
       <key>CFBundleTypeRole</key>
       <string>Viewer</string>
       <key>CFBundleTypeExtensions</key>
@@ -79,8 +81,133 @@ cat > "$CONTENTS_DIR/Info.plist" <<PLIST
         <string>ogg</string>
         <string>wav</string>
       </array>
+      <key>LSItemContentTypes</key>
+      <array>
+        <string>org.matroska.mkv</string>
+        <string>org.matroska.mka</string>
+        <string>org.webmproject.webm</string>
+        <string>public.mpeg-4</string>
+        <string>com.apple.quicktime-movie</string>
+        <string>public.avi</string>
+        <string>com.microsoft.windows-media-wmv</string>
+        <string>public.mp3</string>
+        <string>org.xiph.flac</string>
+        <string>org.xiph.ogg</string>
+        <string>com.microsoft.waveform-audio</string>
+      </array>
       <key>LSHandlerRank</key>
       <string>Alternate</string>
+    </dict>
+  </array>
+  <key>UTImportedTypeDeclarations</key>
+  <array>
+    <dict>
+      <key>UTTypeIdentifier</key>
+      <string>org.matroska.mkv</string>
+      <key>UTTypeDescription</key>
+      <string>Matroska Video</string>
+      <key>UTTypeConformsTo</key>
+      <array>
+        <string>public.movie</string>
+        <string>public.audiovisual-content</string>
+      </array>
+      <key>UTTypeTagSpecification</key>
+      <dict>
+        <key>public.filename-extension</key>
+        <array>
+          <string>mkv</string>
+        </array>
+        <key>public.mime-type</key>
+        <array>
+          <string>video/x-matroska</string>
+        </array>
+      </dict>
+    </dict>
+    <dict>
+      <key>UTTypeIdentifier</key>
+      <string>org.matroska.mka</string>
+      <key>UTTypeDescription</key>
+      <string>Matroska Audio</string>
+      <key>UTTypeConformsTo</key>
+      <array>
+        <string>public.audio</string>
+      </array>
+      <key>UTTypeTagSpecification</key>
+      <dict>
+        <key>public.filename-extension</key>
+        <array>
+          <string>mka</string>
+        </array>
+        <key>public.mime-type</key>
+        <array>
+          <string>audio/x-matroska</string>
+        </array>
+      </dict>
+    </dict>
+    <dict>
+      <key>UTTypeIdentifier</key>
+      <string>org.webmproject.webm</string>
+      <key>UTTypeDescription</key>
+      <string>WebM Video</string>
+      <key>UTTypeConformsTo</key>
+      <array>
+        <string>public.movie</string>
+        <string>public.audiovisual-content</string>
+      </array>
+      <key>UTTypeTagSpecification</key>
+      <dict>
+        <key>public.filename-extension</key>
+        <array>
+          <string>webm</string>
+        </array>
+        <key>public.mime-type</key>
+        <array>
+          <string>video/webm</string>
+        </array>
+      </dict>
+    </dict>
+    <dict>
+      <key>UTTypeIdentifier</key>
+      <string>org.xiph.flac</string>
+      <key>UTTypeDescription</key>
+      <string>FLAC Audio</string>
+      <key>UTTypeConformsTo</key>
+      <array>
+        <string>public.audio</string>
+      </array>
+      <key>UTTypeTagSpecification</key>
+      <dict>
+        <key>public.filename-extension</key>
+        <array>
+          <string>flac</string>
+        </array>
+        <key>public.mime-type</key>
+        <array>
+          <string>audio/flac</string>
+        </array>
+      </dict>
+    </dict>
+    <dict>
+      <key>UTTypeIdentifier</key>
+      <string>org.xiph.ogg</string>
+      <key>UTTypeDescription</key>
+      <string>Ogg Media</string>
+      <key>UTTypeConformsTo</key>
+      <array>
+        <string>public.audiovisual-content</string>
+      </array>
+      <key>UTTypeTagSpecification</key>
+      <dict>
+        <key>public.filename-extension</key>
+        <array>
+          <string>ogg</string>
+        </array>
+        <key>public.mime-type</key>
+        <array>
+          <string>audio/ogg</string>
+          <string>video/ogg</string>
+        </array>
+      </dict>
     </dict>
   </array>
   <key>LSMinimumSystemVersion</key>
