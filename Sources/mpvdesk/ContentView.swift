@@ -61,6 +61,7 @@ struct ContentView: View {
             } else {
                 hideControlsTask?.cancel()
                 isPointerActive = false
+                revealCursorIfNeeded()
             }
         }
         .onContinuousHover { phase in
@@ -137,7 +138,8 @@ struct ContentView: View {
     }
 
     private func updateCursorVisibility() {
-        let shouldHideCursor = player.currentFile != nil && !player.isPaused && !shouldShowControls
+        let pointerCanBeHidden = player.isFullscreen || isPointerInside
+        let shouldHideCursor = pointerCanBeHidden && player.currentFile != nil && !player.isPaused && !shouldShowControls
 
         if shouldHideCursor, !isCursorHidden {
             NSCursor.hide()
@@ -489,7 +491,7 @@ private struct AppInfoPopover: View {
     private let info = AppInfo.current
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: 16) {
             HStack(spacing: 12) {
                 Image(nsImage: NSApp.applicationIconImage)
                     .resizable()
@@ -500,23 +502,33 @@ private struct AppInfoPopover: View {
                     Text(info.name)
                         .font(.title3.weight(.semibold))
 
-                    Text("Version \(info.version) (\(info.build))")
+                    Text(info.description)
                         .font(.callout)
                         .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
 
             Divider()
 
-            VStack(alignment: .leading, spacing: 8) {
-                InfoRow(label: "Player", value: "libmpv")
-                InfoRow(label: "Interface", value: "SwiftUI")
-                InfoRow(label: "Renderer", value: "OpenGL via mpv_render_context")
-                InfoRow(label: "Bundle ID", value: info.bundleIdentifier)
+            VStack(alignment: .leading, spacing: 10) {
+                InfoRow(label: "Version", value: "\(info.version) (\(info.build))")
+
+                HStack(alignment: .firstTextBaseline) {
+                    Text("Creator")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                        .frame(width: 72, alignment: .leading)
+
+                    Link("@junwatu", destination: URL(string: "https://x.com/junwatu")!)
+                        .font(.caption)
+                }
+
+                InfoRow(label: "Year", value: info.year)
             }
         }
         .padding(16)
-        .frame(width: 320)
+        .frame(width: 340)
     }
 }
 
@@ -541,9 +553,10 @@ private struct InfoRow: View {
 
 private struct AppInfo {
     let name: String
+    let description: String
     let version: String
     let build: String
-    let bundleIdentifier: String
+    let year: String
 
     static var current: AppInfo {
         let info = Bundle.main.infoDictionary ?? [:]
@@ -552,13 +565,14 @@ private struct AppInfo {
             ?? "Valen"
         let version = info["CFBundleShortVersionString"] as? String ?? "Development"
         let build = info["CFBundleVersion"] as? String ?? "local"
-        let bundleIdentifier = Bundle.main.bundleIdentifier ?? "dev.valen.player"
+        let year = String(Calendar.current.component(.year, from: Date()))
 
         return AppInfo(
             name: name,
+            description: "A native macOS media player powered by mpv.",
             version: version,
             build: build,
-            bundleIdentifier: bundleIdentifier
+            year: year
         )
     }
 }

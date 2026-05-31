@@ -1,8 +1,24 @@
-# Valen
+<p align="center">
+    <img src="Icons/Valen-iOS-ClearDark-1024x1024@1x.png" width="138" alt="Valen"/>
+</p>
 
-Valen is a native macOS media player built with SwiftUI and powered by `libmpv`.
+<h1 align="center">Valen</h1>
 
-It focuses on a clean video-first interface, keyboard-friendly playback, MKV support, audio/subtitle selection, and per-video resume state.
+<p align="center">
+    <strong>A native macOS media player built with SwiftUI and powered by libmpv.<br/>
+    Clean video-first controls, MKV support, subtitles, audio tracks, and per-video resume state.</strong>
+</p>
+
+<div align="center">
+    <a href="https://github.com/junwatu/valen">
+        <img alt="Platform" src="https://img.shields.io/badge/platform-macOS-lightgrey">
+    </a>
+    <a href="LICENSE">
+        <img alt="License" src="https://img.shields.io/badge/license-MIT-blue">
+    </a>
+    <img alt="SwiftUI" src="https://img.shields.io/badge/UI-SwiftUI-orange">
+    <img alt="mpv" src="https://img.shields.io/badge/player-libmpv-green">
+</div>
 
 ## Features
 
@@ -22,7 +38,7 @@ It focuses on a clean video-first interface, keyboard-friendly playback, MKV sup
 - Audio track selector
 - Subtitle track selector
 - Native Settings window
-- App info popover with version, build, bundle ID, and runtime details
+- App info popover with title, description, version, creator, and year
 - Per-video saved state:
   - resume position
   - selected audio track
@@ -191,4 +207,6 @@ Scripts/
 
 ## License
 
-No license has been selected yet.
+Valen source code is licensed under the [MIT License](LICENSE).
+
+Valen depends on `libmpv` and other bundled runtime libraries, which are distributed under their own licenses. Add `THIRD_PARTY_NOTICES.md` before a public binary release.
