@@ -357,7 +357,7 @@ private struct FloatingPlaybackControls: View {
                     .frame(height: 20)
                     .overlay(.white.opacity(0.22))
 
-                Image(systemName: "speaker.wave.2.fill")
+                Image(systemName: "speaker.wave.2")
                     .foregroundStyle(.white.opacity(0.78))
 
                 Slider(value: $player.volume, in: 0...100)
@@ -386,10 +386,12 @@ private struct FloatingPlaybackControls: View {
                         }
                     }
                 } label: {
-                    Image(systemName: "waveform")
+                    Image(systemName: "music.note.list")
+                        .font(.system(size: 15, weight: .semibold))
+                        .frame(width: 26, height: 26)
                 }
                 .disabled(player.audioTracks.isEmpty)
-                .help("Audio")
+                .help("Audio tracks")
 
                 Menu {
                     Button {
@@ -416,35 +418,22 @@ private struct FloatingPlaybackControls: View {
                         }
                     }
                 } label: {
-                    Image(systemName: "captions.bubble")
+                    Image(systemName: subtitleIcon)
+                        .font(.system(size: 15, weight: .semibold))
+                        .frame(width: 26, height: 26)
                 }
                 .help("Subtitles")
 
-                Button {
-                    withAnimation(.easeOut(duration: 0.18)) {
-                        player.isDebugVisible.toggle()
-                    }
-                } label: {
-                    Image(systemName: "list.bullet.rectangle")
-                }
-                .help("Show logs")
+                AppInfoButton(appInfoVisible: $appInfoVisible)
 
                 Button {
                     player.openFilePanel()
                 } label: {
-                    Image(systemName: "folder")
+                    Image(systemName: "folder.badge.plus")
+                        .font(.system(size: 15, weight: .semibold))
+                        .frame(width: 26, height: 26)
                 }
                 .help("Open file")
-
-                Button {
-                    appInfoVisible.toggle()
-                } label: {
-                    Image(systemName: "questionmark.circle")
-                }
-                .help("About Valen")
-                .popover(isPresented: $appInfoVisible, arrowEdge: .bottom) {
-                    AppInfoPopover()
-                }
             }
             .buttonStyle(.quickTimeOverlay)
         }
@@ -484,6 +473,28 @@ private struct FloatingPlaybackControls: View {
     private var playPauseHelp: String {
         guard player.currentFile != nil else { return "Open a file to play" }
         return player.isPaused ? "Play" : "Pause"
+    }
+
+    private var subtitleIcon: String {
+        player.selectedSubtitleID == nil ? "captions.bubble" : "captions.bubble.fill"
+    }
+}
+
+private struct AppInfoButton: View {
+    @Binding var appInfoVisible: Bool
+
+    var body: some View {
+        Button {
+            appInfoVisible.toggle()
+        } label: {
+            Image(systemName: "info.circle")
+                .font(.system(size: 16, weight: .semibold))
+                .frame(width: 26, height: 26)
+        }
+        .help("About Valen")
+        .popover(isPresented: $appInfoVisible, arrowEdge: .top) {
+            AppInfoPopover()
+        }
     }
 }
 

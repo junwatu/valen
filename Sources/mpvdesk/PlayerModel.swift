@@ -126,7 +126,13 @@ final class PlayerModel: ObservableObject {
     }
 
     func toggleFullscreen() {
-        NSApp.keyWindow?.toggleFullScreen(nil)
+        guard let window = hostView?.window ?? NSApp.keyWindow ?? NSApp.mainWindow else {
+            log("Fullscreen toggle ignored: no active window.")
+            return
+        }
+
+        log(window.styleMask.contains(.fullScreen) ? "Exiting fullscreen." : "Entering fullscreen.")
+        window.toggleFullScreen(nil)
     }
 
     func togglePlayPause() {
@@ -226,6 +232,11 @@ final class PlayerModel: ObservableObject {
             guard let self else { return event }
 
             let modifiers = event.modifierFlags.intersection([.command, .option, .control])
+            if event.keyCode == 3, modifiers == [.command, .control] {
+                self.toggleFullscreen()
+                return nil
+            }
+
             guard modifiers.isEmpty else { return event }
 
             switch event.keyCode {

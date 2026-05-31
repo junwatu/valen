@@ -45,6 +45,11 @@ struct ValenApp: App {
                     player.toggleFullscreen()
                 }
                 .keyboardShortcut("f", modifiers: [.command, .control])
+
+                Button(player.isDebugVisible ? "Hide Logs" : "Show Logs") {
+                    player.isDebugVisible.toggle()
+                }
+                .keyboardShortcut("l", modifiers: [.command, .shift])
             }
 
             CommandGroup(after: .appInfo) {
