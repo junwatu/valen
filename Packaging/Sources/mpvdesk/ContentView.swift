@@ -41,13 +41,15 @@ struct ContentView: View {
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
 
-                FloatingPlaybackControls(appInfoVisible: $isAppInfoVisible)
-                    .environmentObject(player)
-                    .fixedSize(horizontal: true, vertical: false)
-                    .frame(maxWidth: minControlPanelWidth, alignment: .center)
-                    .opacity(shouldShowControls ? 1 : 0)
-                    .offset(y: shouldShowControls ? 0 : 10)
-                    .animation(.easeOut(duration: 0.18), value: shouldShowControls)
+                if player.currentFile != nil {
+                    FloatingPlaybackControls(appInfoVisible: $isAppInfoVisible)
+                        .environmentObject(player)
+                        .fixedSize(horizontal: true, vertical: false)
+                        .frame(maxWidth: minControlPanelWidth, alignment: .center)
+                        .opacity(shouldShowControls ? 1 : 0)
+                        .offset(y: shouldShowControls ? 0 : 10)
+                        .animation(.easeOut(duration: 0.18), value: shouldShowControls)
+                }
             }
             .padding(.horizontal, 24)
             .padding(.bottom, 22)
@@ -287,7 +289,7 @@ private struct EmptyPlayerView: View {
         VStack(spacing: ValenLayoutMetrics.emptyStateSpacing) {
             Image(systemName: ValenLayoutMetrics.emptyStateIcon)
                 .font(.system(size: ValenLayoutMetrics.emptyStateIconSize, weight: .regular))
-                .foregroundStyle(.white.opacity(0.56))
+                .foregroundStyle(.white.opacity(isDropTarget ? 0.78 : 0.56))
                 .scaleEffect(isDropTarget ? 1.05 : 1)
                 .animation(.easeOut(duration: 0.18), value: isDropTarget)
 
@@ -303,22 +305,8 @@ private struct EmptyPlayerView: View {
                     .frame(maxWidth: 360)
             }
 
-            Button(action: openAction) {
-                Label(ValenLayoutMetrics.emptyStateButtonTitle, systemImage: ValenLayoutMetrics.openFileIcon)
-                    .font(.callout.weight(.medium))
-                    .foregroundStyle(.white.opacity(0.92))
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 9)
-                    .background(
-                        Capsule()
-                            .fill(.white.opacity(0.08))
-                    )
-                    .overlay {
-                        Capsule()
-                            .stroke(.white.opacity(0.24))
-                    }
-            }
-            .buttonStyle(.plain)
+            Button(ValenLayoutMetrics.emptyStateButtonTitle, action: openAction)
+                .buttonStyle(.borderedProminent)
         }
         .padding(ValenLayoutMetrics.emptyStatePadding)
     }

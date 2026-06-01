@@ -8,7 +8,7 @@ enum ValenLayoutMetrics {
     static let emptyStateButtonTitle = "Open File"
 
     static let emptyStateSpacing = 16.0
-    static let emptyStateIconSize = 64.0
+    static let emptyStateIconSize = 56.0
     static let emptyStateTextSpacing = 6.0
     static let emptyStatePadding = 32.0
 
@@ -22,5 +22,5 @@ enum ValenLayoutMetrics {
     static let subtitlesInactiveIcon = "captions.bubble"
     static let subtitlesActiveIcon = "captions.bubble.fill"
     static let appInfoIcon = "info.circle"
-    static let openFileIcon = "plus"
+    static let openFileIcon = "folder.badge.plus"
 }
