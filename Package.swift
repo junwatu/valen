@@ -19,9 +19,13 @@ let package = Package(
                 .brew(["mpv"])
             ]
         ),
+        .target(
+            name: "ValenControl",
+            path: "Packaging/Sources/ValenControl"
+        ),
         .executableTarget(
             name: "Valen",
-            dependencies: ["CMpv"],
+            dependencies: ["CMpv", "ValenControl"],
             path: "Packaging/Sources/mpvdesk",
             linkerSettings: [
                 .linkedFramework("AppKit"),
@@ -31,7 +35,7 @@ let package = Package(
         ),
         .testTarget(
             name: "ValenTests",
-            dependencies: ["Valen"],
+            dependencies: ["Valen", "ValenControl"],
             path: "Tests/ValenTests"
         )
     ]
