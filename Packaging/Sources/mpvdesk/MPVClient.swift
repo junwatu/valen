@@ -155,14 +155,18 @@ final class MPVClient {
         guard let handle else { throw MPVError.createFailed }
         NSLog("[valen] command: \(args.joined(separator: " "))")
 
-        let cStrings = args.map { strdup($0) }
+        let cStrings: [UnsafeMutablePointer<CChar>?] = args.map { strdup($0) }
         defer {
             for pointer in cStrings {
-                free(pointer)
+                if let pointer {
+                    free(pointer)
+                }
             }
         }
 
-        var command = cStrings.map { UnsafePointer<CChar>($0) }
+        var command: [UnsafePointer<CChar>?] = cStrings.map { ptr in
+            ptr.map { UnsafePointer<CChar>($0) }
+        }
         command.append(nil)
 
         let status = command.withUnsafeMutableBufferPointer { buffer in
