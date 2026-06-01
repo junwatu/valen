@@ -205,9 +205,7 @@ Launch Claude Desktop while the Valen app is running and the eight tools appear 
 ## Current Limitations
 
 - OpenGL rendering works but produces deprecation warnings.
-- Public distribution still needs real Developer ID signing and notarization.
 - Sparkle update code is scaffolded, but the framework still needs to be embedded in the Xcode target.
-- The shell bundle script is still the main distributable build path.
 
 ## License
 
