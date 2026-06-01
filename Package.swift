@@ -8,7 +8,8 @@ let package = Package(
         .macOS(.v14)
     ],
     products: [
-        .executable(name: "valen", targets: ["Valen"])
+        .executable(name: "valen", targets: ["Valen"]),
+        .executable(name: "valen-mcp", targets: ["valen-mcp"])
     ],
     targets: [
         .systemLibrary(
@@ -19,9 +20,13 @@ let package = Package(
                 .brew(["mpv"])
             ]
         ),
+        .target(
+            name: "ValenControl",
+            path: "Packaging/Sources/ValenControl"
+        ),
         .executableTarget(
             name: "Valen",
-            dependencies: ["CMpv"],
+            dependencies: ["CMpv", "ValenControl"],
             path: "Packaging/Sources/mpvdesk",
             linkerSettings: [
                 .linkedFramework("AppKit"),
@@ -29,10 +34,16 @@ let package = Package(
                 .linkedFramework("SwiftUI")
             ]
         ),
+        .executableTarget(
+            name: "valen-mcp",
+            dependencies: ["ValenControl"],
+            path: "Packaging/Sources/valen-mcp"
+        ),
         .testTarget(
             name: "ValenTests",
-            dependencies: ["Valen"],
+            dependencies: ["Valen", "ValenControl"],
             path: "Tests/ValenTests"
         )
     ]
 )
+
