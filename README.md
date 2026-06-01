@@ -6,7 +6,7 @@
 
 <p align="center">
     <strong>A native macOS media player built with SwiftUI and powered by libmpv.<br/>
-    Clean video-first controls, MKV support, subtitles, audio tracks, and per-video resume state.</strong>
+    Video-first controls, a compact mini-player mode, MKV support, subtitles, audio tracks, per-video resume state, and an MCP server for AI agent control.</strong>
 </p>
 
 <div align="center">
@@ -30,6 +30,7 @@
 - Open files with `Command-O`
 - Drag and drop media files
 - Compact QuickTime-style translucent overlay controls
+- Responsive compact mode for small windows (single-row layout, 480×280 minimum)
 - Overlay auto-hides during playback when the pointer is idle
 - Cursor hides when playback controls hide
 - Fullscreen support through shortcut, double-click, or macOS window controls
@@ -42,7 +43,7 @@
   - selected subtitle track
   - subtitles off/on state
   - volume
-- MCP server (stdio + Unix socket) for AI agent control
+- MCP server (stdio + Unix socket) for AI agent control — ships inside the app bundle
 
 ## Shortcuts
 
