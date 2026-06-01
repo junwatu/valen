@@ -23,8 +23,6 @@
 ## Features
 
 - Native SwiftUI macOS app
-- Real Xcode app target: `Valen.xcodeproj`
-- Swift Package target for quick local development
 - mpv playback through `libmpv`
 - MKV, WebM, MP4, MOV, AVI, FLAC, OGG, WAV, and common media extension support
 - Open files with `Command-O`
@@ -203,45 +201,6 @@ printf '%s\n' \
 
 Launch Claude Desktop while the Valen app is running and the eight tools appear in the tools menu.
 
-## Project Layout
-
-```text
-Valen.xcodeproj/
-Package.swift
-Docs/
-  Rendering.md
-Icons/
-Xcode/
-  Valen-Info.plist
-  Resources/
-    Valen.icns
-Packaging/
-  Sources/
-    CMpv/
-      module.modulemap
-    ValenControl/
-      ControlClient.swift
-      ControlProtocol.swift
-    mpvdesk/
-      AppPreferences.swift
-      AppInfo.swift
-      ContentView.swift
-      ControlServer.swift
-      LayoutMetrics.swift
-      MPVClient.swift
-      MpvdeskApp.swift
-      PlayerModel.swift
-      SettingsView.swift
-      SparkleUpdater.swift
-      VideoSurfaceView.swift
-    valen-mcp/
-      main.swift
-  Valen.entitlements
-  appcast.example.xml
-Scripts/
-  build-app.sh
-  notarize-app.sh
-```
 
 ## Current Limitations
 
