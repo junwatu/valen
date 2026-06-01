@@ -15,7 +15,7 @@ struct ValenApp: App {
         WindowGroup {
             ContentView()
                 .environmentObject(player)
-                .frame(minWidth: 920, minHeight: 560)
+                .frame(minWidth: 480, minHeight: 280)
                 .task {
                     if controlServer == nil {
                         let server = ControlServer(player: player)

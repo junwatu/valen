@@ -49,8 +49,7 @@ struct ContentView: View {
                 if player.currentFile != nil {
                     FloatingPlaybackControls(activePopover: $activeControlPopover)
                         .environmentObject(player)
-                        .fixedSize(horizontal: true, vertical: false)
-                        .frame(maxWidth: minControlPanelWidth, alignment: .center)
+                        .frame(maxWidth: .infinity, alignment: .center)
                         .opacity(shouldShowControls ? 1 : 0)
                         .offset(y: shouldShowControls ? 0 : 10)
                         .animation(.easeOut(duration: 0.18), value: shouldShowControls)
@@ -87,8 +86,9 @@ struct ContentView: View {
                 hideControlsTask?.cancel()
             }
         }
-        .onChange(of: player.currentFile) { _, _ in
+        .onChange(of: player.currentFile) { _, newFile in
             showControlsTemporarily()
+            NSApp.windows.forEach { $0.title = newFile?.lastPathComponent ?? "Valen" }
         }
         .onChange(of: activeControlPopover) { _, activePopover in
             if activePopover == nil {
@@ -125,10 +125,6 @@ struct ContentView: View {
 
     private var shouldShowControls: Bool {
         player.isPaused || player.currentFile == nil || player.isDebugVisible || activeControlPopover != nil || isPointerActive
-    }
-
-    private var minControlPanelWidth: CGFloat {
-        player.currentFile == nil ? ValenLayoutMetrics.overlayWidthWithoutMedia : ValenLayoutMetrics.overlayWidthWithMedia
     }
 
     private func showControlsTemporarily() {
@@ -321,6 +317,17 @@ private struct EmptyPlayerView: View {
 }
 
 private struct FloatingPlaybackControls: View {
+    @Binding var activePopover: ControlPopover?
+
+    var body: some View {
+        ViewThatFits(in: .horizontal) {
+            FullControls(activePopover: $activePopover)
+            CompactControls(activePopover: $activePopover)
+        }
+    }
+}
+
+private struct FullControls: View {
     @EnvironmentObject private var player: PlayerModel
     @Binding var activePopover: ControlPopover?
 
@@ -332,7 +339,7 @@ private struct FloatingPlaybackControls: View {
                     .lineLimit(1)
                     .truncationMode(.middle)
                     .foregroundStyle(.white.opacity(0.94))
-                    .frame(width: 520)
+                    .frame(maxWidth: 520)
             }
 
             HStack(spacing: 12) {
@@ -357,99 +364,56 @@ private struct FloatingPlaybackControls: View {
                     .frame(width: 58, alignment: .trailing)
             }
 
-            HStack(spacing: 14) {
-                Button {
-                    player.togglePlayPause()
-                } label: {
-                    Image(systemName: playPauseIcon)
-                        .font(.system(size: 17, weight: .semibold))
-                        .frame(width: 26, height: 26)
-                }
-                .keyboardShortcut(.space, modifiers: [])
-                .disabled(player.currentFile == nil)
-                .help(playPauseHelp)
-
-                Divider()
-                    .frame(height: 20)
-                    .overlay(.white.opacity(0.22))
-
-                Image(systemName: ValenLayoutMetrics.volumeIcon)
-                    .foregroundStyle(.white.opacity(0.78))
-
-                Slider(value: $player.volume, in: 0...100)
-                    .frame(width: 128)
-                    .onChange(of: player.volume) { _, newValue in
-                        player.setVolume(newValue)
-                    }
-
-                Divider()
-                    .frame(height: 20)
-                    .overlay(.white.opacity(0.22))
-
-                Button {
-                    activePopover = activePopover == .audio ? nil : .audio
-                } label: {
-                    Image(systemName: ValenLayoutMetrics.audioTracksIcon)
-                        .font(.system(size: 15, weight: .semibold))
-                        .frame(width: 26, height: 26)
-                }
-                .disabled(player.audioTracks.isEmpty)
-                .help("Audio tracks")
-                .popover(isPresented: popoverBinding(.audio), arrowEdge: .top) {
-                    AudioTrackPopover(activePopover: $activePopover)
-                        .environmentObject(player)
-                }
-
-                Button {
-                    activePopover = activePopover == .subtitles ? nil : .subtitles
-                } label: {
-                    Image(systemName: subtitleIcon)
-                        .font(.system(size: 15, weight: .semibold))
-                        .frame(width: 26, height: 26)
-                }
-                .help("Subtitles")
-                .popover(isPresented: popoverBinding(.subtitles), arrowEdge: .top) {
-                    SubtitleTrackPopover(activePopover: $activePopover)
-                        .environmentObject(player)
-                }
-
-                Button {
-                    player.openFilePanel()
-                } label: {
-                    Image(systemName: ValenLayoutMetrics.openFileIcon)
-                        .font(.system(size: 15, weight: .semibold))
-                        .frame(width: 26, height: 26)
-                }
-                .help("Open file")
-            }
-            .buttonStyle(.quickTimeOverlay)
+            playbackButtonsRow
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 13)
-        .background(
-            ZStack {
-                RoundedRectangle(cornerRadius: ValenLayoutMetrics.overlayCornerRadius)
-                    .fill(Color.black.opacity(ValenLayoutMetrics.overlayOpacity))
+        .overlayPanel()
+    }
 
-                RoundedRectangle(cornerRadius: ValenLayoutMetrics.overlayCornerRadius)
-                    .fill(
-                        LinearGradient(
-                            colors: [
-                                .white.opacity(0.08),
-                                .white.opacity(0.02),
-                                .clear
-                            ],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    )
-            }
-        )
-        .overlay {
-            RoundedRectangle(cornerRadius: ValenLayoutMetrics.overlayCornerRadius)
-                .stroke(.white.opacity(0.18))
+    private var playbackButtonsRow: some View {
+        HStack(spacing: 14) {
+            PlayPauseButton(
+                icon: playPauseIcon,
+                size: 26,
+                iconSize: 17,
+                help: playPauseHelp,
+                activePopover: $activePopover
+            )
+
+            Divider()
+                .frame(height: 20)
+                .overlay(.white.opacity(0.22))
+
+            Image(systemName: ValenLayoutMetrics.volumeIcon)
+                .foregroundStyle(.white.opacity(0.78))
+
+            Slider(value: $player.volume, in: 0...100)
+                .frame(width: 128)
+                .onChange(of: player.volume) { _, newValue in
+                    player.setVolume(newValue)
+                }
+
+            Divider()
+                .frame(height: 20)
+                .overlay(.white.opacity(0.22))
+
+            AudioTrackButton(
+                size: 26,
+                iconSize: 15,
+                activePopover: $activePopover
+            )
+
+            SubtitleButton(
+                icon: subtitleIcon,
+                size: 26,
+                iconSize: 15,
+                activePopover: $activePopover
+            )
+
+            OpenFileButton(size: 26, iconSize: 15)
         }
-        .shadow(color: .black.opacity(0.45), radius: 20, x: 0, y: 10)
+        .buttonStyle(.quickTimeOverlay)
     }
 
     private var playPauseIcon: String {
@@ -465,6 +429,129 @@ private struct FloatingPlaybackControls: View {
     private var subtitleIcon: String {
         player.selectedSubtitleID == nil ? ValenLayoutMetrics.subtitlesInactiveIcon : ValenLayoutMetrics.subtitlesActiveIcon
     }
+}
+
+private struct CompactControls: View {
+    @EnvironmentObject private var player: PlayerModel
+    @Binding var activePopover: ControlPopover?
+
+    var body: some View {
+        HStack(spacing: 6) {
+            PlayPauseButton(
+                icon: playPauseIcon,
+                size: 24,
+                iconSize: 15,
+                help: playPauseHelp,
+                activePopover: $activePopover
+            )
+
+            Text(player.positionText)
+                .font(.system(.caption2, design: .monospaced))
+                .foregroundStyle(.white.opacity(0.86))
+                .frame(minWidth: 36, alignment: .leading)
+
+            Slider(
+                value: Binding(
+                    get: { player.position },
+                    set: { player.scrub(to: $0) }
+                ),
+                in: 0...max(player.duration, 1)
+            )
+            .disabled(player.duration <= 0)
+
+            Text(player.durationText)
+                .font(.system(.caption2, design: .monospaced))
+                .foregroundStyle(.white.opacity(0.86))
+                .frame(minWidth: 36, alignment: .trailing)
+
+            Image(systemName: ValenLayoutMetrics.volumeIcon)
+                .foregroundStyle(.white.opacity(0.78))
+
+            Slider(value: $player.volume, in: 0...100)
+                .frame(maxWidth: 64)
+                .onChange(of: player.volume) { _, newValue in
+                    player.setVolume(newValue)
+                }
+
+            AudioTrackButton(
+                size: 24,
+                iconSize: 13,
+                activePopover: $activePopover
+            )
+
+            SubtitleButton(
+                icon: subtitleIcon,
+                size: 24,
+                iconSize: 13,
+                activePopover: $activePopover
+            )
+
+            OpenFileButton(size: 24, iconSize: 13)
+        }
+        .buttonStyle(.quickTimeOverlay)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .overlayPanel()
+    }
+
+    private var playPauseIcon: String {
+        guard player.currentFile != nil else { return "play.fill" }
+        return player.isPaused ? "play.fill" : "pause.fill"
+    }
+
+    private var playPauseHelp: String {
+        guard player.currentFile != nil else { return "Open a file to play" }
+        return player.isPaused ? "Play" : "Pause"
+    }
+
+    private var subtitleIcon: String {
+        player.selectedSubtitleID == nil ? ValenLayoutMetrics.subtitlesInactiveIcon : ValenLayoutMetrics.subtitlesActiveIcon
+    }
+}
+
+private struct PlayPauseButton: View {
+    @EnvironmentObject private var player: PlayerModel
+    let icon: String
+    let size: CGFloat
+    let iconSize: CGFloat
+    let help: String
+    @Binding var activePopover: ControlPopover?
+
+    var body: some View {
+        Button {
+            player.togglePlayPause()
+        } label: {
+            Image(systemName: icon)
+                .font(.system(size: iconSize, weight: .semibold))
+                .frame(width: size, height: size)
+        }
+        .keyboardShortcut(.space, modifiers: [])
+        .disabled(player.currentFile == nil)
+        .help(help)
+    }
+}
+
+private struct AudioTrackButton: View {
+    @EnvironmentObject private var player: PlayerModel
+    let size: CGFloat
+    let iconSize: CGFloat
+    @Binding var activePopover: ControlPopover?
+
+    var body: some View {
+        Button {
+            activePopover = activePopover == .audio ? nil : .audio
+        } label: {
+            Image(systemName: ValenLayoutMetrics.audioTracksIcon)
+                .font(.system(size: iconSize, weight: .semibold))
+                .frame(width: size, height: size)
+        }
+        .disabled(player.audioTracks.isEmpty)
+        .help("Audio tracks")
+        .popover(isPresented: popoverBinding(.audio), arrowEdge: .top) {
+            AudioTrackPopover(activePopover: $activePopover)
+                .environmentObject(player)
+        }
+    }
 
     private func popoverBinding(_ popover: ControlPopover) -> Binding<Bool> {
         Binding(
@@ -473,6 +560,85 @@ private struct FloatingPlaybackControls: View {
                 activePopover = isPresented ? popover : nil
             }
         )
+    }
+}
+
+private struct SubtitleButton: View {
+    @EnvironmentObject private var player: PlayerModel
+    let icon: String
+    let size: CGFloat
+    let iconSize: CGFloat
+    @Binding var activePopover: ControlPopover?
+
+    var body: some View {
+        Button {
+            activePopover = activePopover == .subtitles ? nil : .subtitles
+        } label: {
+            Image(systemName: icon)
+                .font(.system(size: iconSize, weight: .semibold))
+                .frame(width: size, height: size)
+        }
+        .help("Subtitles")
+        .popover(isPresented: popoverBinding(.subtitles), arrowEdge: .top) {
+            SubtitleTrackPopover(activePopover: $activePopover)
+                .environmentObject(player)
+        }
+    }
+
+    private func popoverBinding(_ popover: ControlPopover) -> Binding<Bool> {
+        Binding(
+            get: { activePopover == popover },
+            set: { isPresented in
+                activePopover = isPresented ? popover : nil
+            }
+        )
+    }
+}
+
+private struct OpenFileButton: View {
+    @EnvironmentObject private var player: PlayerModel
+    let size: CGFloat
+    let iconSize: CGFloat
+
+    var body: some View {
+        Button {
+            player.openFilePanel()
+        } label: {
+            Image(systemName: ValenLayoutMetrics.openFileIcon)
+                .font(.system(size: iconSize, weight: .semibold))
+                .frame(width: size, height: size)
+        }
+        .help("Open file")
+    }
+}
+
+private extension View {
+    func overlayPanel() -> some View {
+        self
+            .background(
+                ZStack {
+                    RoundedRectangle(cornerRadius: ValenLayoutMetrics.overlayCornerRadius)
+                        .fill(Color.black.opacity(ValenLayoutMetrics.overlayOpacity))
+
+                    RoundedRectangle(cornerRadius: ValenLayoutMetrics.overlayCornerRadius)
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    .white.opacity(0.08),
+                                    .white.opacity(0.02),
+                                    .clear
+                                ],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+                }
+            )
+            .overlay {
+                RoundedRectangle(cornerRadius: ValenLayoutMetrics.overlayCornerRadius)
+                    .stroke(.white.opacity(0.18))
+            }
+            .shadow(color: .black.opacity(0.45), radius: 20, x: 0, y: 10)
     }
 }
 
