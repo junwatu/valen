@@ -32,6 +32,7 @@ struct ValenApp: App {
                     controlServer = nil
                 }
         }
+        .windowResizability(.contentMinSize)
         .windowStyle(.titleBar)
         .commands {
             CommandGroup(replacing: .appInfo) {
