@@ -82,6 +82,9 @@ struct ContentView: View {
                 isPointerActive = true
             } else if isPointerInside {
                 showControlsTemporarily()
+            } else {
+                isPointerActive = false
+                hideControlsTask?.cancel()
             }
         }
         .onChange(of: player.currentFile) { _, _ in
