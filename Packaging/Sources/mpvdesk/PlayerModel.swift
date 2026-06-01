@@ -2,6 +2,7 @@ import AppKit
 import Combine
 import SwiftUI
 import UniformTypeIdentifiers
+import ValenControl
 
 @MainActor
 final class PlayerModel: ObservableObject {
@@ -187,6 +188,28 @@ final class PlayerModel: ObservableObject {
         } catch {
             errorMessage = error.localizedDescription
         }
+    }
+
+    func setSpeed(_ value: Double) {
+        do {
+            try mpv.setDouble("speed", value: value)
+            log("Speed: \(value)x")
+        } catch {
+            errorMessage = error.localizedDescription
+            log("Set speed failed: \(error.localizedDescription)")
+        }
+    }
+
+    func snapshot() -> ControlState {
+        let speed = mpv.getDouble("speed") ?? 1.0
+        return ControlState(
+            currentFile: currentFile?.path,
+            isPaused: isPaused,
+            position: position,
+            duration: duration,
+            volume: volume,
+            speed: speed
+        )
     }
 
     func selectAudioTrack(_ track: MediaTrack) {

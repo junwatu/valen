@@ -5,6 +5,7 @@ struct ValenApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @StateObject private var player = PlayerModel()
     @StateObject private var updater = SparkleUpdaterController()
+    @State private var controlServer: ControlServer?
 
     init() {
         AppPreferences.registerDefaults()
@@ -15,6 +16,21 @@ struct ValenApp: App {
             ContentView()
                 .environmentObject(player)
                 .frame(minWidth: 920, minHeight: 560)
+                .task {
+                    if controlServer == nil {
+                        let server = ControlServer(player: player)
+                        do {
+                            try server.start()
+                            controlServer = server
+                        } catch {
+                            NSLog("[valen] control server failed to start: \(error.localizedDescription)")
+                        }
+                    }
+                }
+                .onDisappear {
+                    controlServer?.stop()
+                    controlServer = nil
+                }
         }
         .windowStyle(.titleBar)
         .commands {
