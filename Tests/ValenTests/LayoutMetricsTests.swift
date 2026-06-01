@@ -29,7 +29,6 @@ final class LayoutMetricsTests: XCTestCase {
         XCTAssertEqual(ValenLayoutMetrics.audioTracksIcon, "music.note.list")
         XCTAssertEqual(ValenLayoutMetrics.subtitlesInactiveIcon, "captions.bubble")
         XCTAssertEqual(ValenLayoutMetrics.subtitlesActiveIcon, "captions.bubble.fill")
-        XCTAssertEqual(ValenLayoutMetrics.appInfoIcon, "info.circle")
         XCTAssertEqual(ValenLayoutMetrics.openFileIcon, "folder.badge.plus")
     }
 }

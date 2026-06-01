@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DIST_DIR="$ROOT_DIR/dist"
 APP_DIR="${APP_DIR:-$DIST_DIR/Valen.app}"
-ZIP_PATH="${ZIP_PATH:-$DIST_DIR/Valen-0.1.0-macos-arm64.zip}"
+ZIP_PATH="${ZIP_PATH:-$DIST_DIR/Valen-0.1.1-macos-arm64.zip}"
 
 if [[ ! -d "$APP_DIR" ]]; then
   echo "error: app bundle not found: $APP_DIR" >&2

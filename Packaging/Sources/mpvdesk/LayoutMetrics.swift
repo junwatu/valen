@@ -21,6 +21,5 @@ enum ValenLayoutMetrics {
     static let audioTracksIcon = "music.note.list"
     static let subtitlesInactiveIcon = "captions.bubble"
     static let subtitlesActiveIcon = "captions.bubble.fill"
-    static let appInfoIcon = "info.circle"
     static let openFileIcon = "folder.badge.plus"
 }

@@ -61,8 +61,8 @@ Keep UI code talking to a small render surface abstraction, not directly to a re
 
 Current files:
 
-- `Sources/mpvdesk/VideoSurfaceView.swift`
-- `Sources/mpvdesk/MPVClient.swift`
+- `Packaging/Sources/mpvdesk/VideoSurfaceView.swift`
+- `Packaging/Sources/mpvdesk/MPVClient.swift`
 
 The future replacement should keep this contract:
 

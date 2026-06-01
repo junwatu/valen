@@ -18,6 +18,12 @@ struct ValenApp: App {
         }
         .windowStyle(.titleBar)
         .commands {
+            CommandGroup(replacing: .appInfo) {
+                Button("About Valen") {
+                    AboutPanelPresenter.show()
+                }
+            }
+
             CommandGroup(replacing: .newItem) {
                 Button("Open File...") {
                     player.openFilePanel()

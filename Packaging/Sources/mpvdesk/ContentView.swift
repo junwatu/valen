@@ -1,6 +1,11 @@
 import AppKit
 import SwiftUI
 
+private enum ControlPopover: Equatable {
+    case audio
+    case subtitles
+}
+
 struct ContentView: View {
     @EnvironmentObject private var player: PlayerModel
     @AppStorage(AppPreferenceKeys.autoHideControls) private var autoHideControls = true
@@ -9,7 +14,7 @@ struct ContentView: View {
     @State private var isPointerInside = false
     @State private var isPointerActive = true
     @State private var isCursorHidden = false
-    @State private var isAppInfoVisible = false
+    @State private var activeControlPopover: ControlPopover?
     @State private var hideControlsTask: Task<Void, Never>?
 
     var body: some View {
@@ -42,7 +47,7 @@ struct ContentView: View {
                 }
 
                 if player.currentFile != nil {
-                    FloatingPlaybackControls(appInfoVisible: $isAppInfoVisible)
+                    FloatingPlaybackControls(activePopover: $activeControlPopover)
                         .environmentObject(player)
                         .fixedSize(horizontal: true, vertical: false)
                         .frame(maxWidth: minControlPanelWidth, alignment: .center)
@@ -82,6 +87,14 @@ struct ContentView: View {
         .onChange(of: player.currentFile) { _, _ in
             showControlsTemporarily()
         }
+        .onChange(of: activeControlPopover) { _, activePopover in
+            if activePopover == nil {
+                showControlsTemporarily()
+            } else {
+                hideControlsTask?.cancel()
+                isPointerActive = true
+            }
+        }
         .onChange(of: shouldShowControls) { _, _ in
             updateCursorVisibility()
         }
@@ -90,14 +103,6 @@ struct ContentView: View {
         }
         .onChange(of: player.currentFile) { _, _ in
             updateCursorVisibility()
-        }
-        .onChange(of: isAppInfoVisible) { _, visible in
-            if visible {
-                hideControlsTask?.cancel()
-                isPointerActive = true
-            } else {
-                showControlsTemporarily()
-            }
         }
         .onDisappear {
             revealCursorIfNeeded()
@@ -116,7 +121,7 @@ struct ContentView: View {
     }
 
     private var shouldShowControls: Bool {
-        player.isPaused || player.currentFile == nil || player.isDebugVisible || isAppInfoVisible || isPointerActive
+        player.isPaused || player.currentFile == nil || player.isDebugVisible || activeControlPopover != nil || isPointerActive
     }
 
     private var minControlPanelWidth: CGFloat {
@@ -127,7 +132,7 @@ struct ContentView: View {
         isPointerActive = true
         hideControlsTask?.cancel()
 
-        guard autoHideControls, !player.isPaused, player.currentFile != nil, !player.isDebugVisible, !isAppInfoVisible else {
+        guard autoHideControls, !player.isPaused, player.currentFile != nil, !player.isDebugVisible, activeControlPopover == nil else {
             return
         }
 
@@ -314,7 +319,7 @@ private struct EmptyPlayerView: View {
 
 private struct FloatingPlaybackControls: View {
     @EnvironmentObject private var player: PlayerModel
-    @Binding var appInfoVisible: Bool
+    @Binding var activePopover: ControlPopover?
 
     var body: some View {
         VStack(spacing: 10) {
@@ -378,21 +383,8 @@ private struct FloatingPlaybackControls: View {
                     .frame(height: 20)
                     .overlay(.white.opacity(0.22))
 
-                Menu {
-                    if player.audioTracks.isEmpty {
-                        Text("No audio tracks")
-                    } else {
-                        ForEach(player.audioTracks) { track in
-                            Button {
-                                player.selectAudioTrack(track)
-                            } label: {
-                                Label(
-                                    track.displayName,
-                                    systemImage: player.selectedAudioID == track.id ? "checkmark" : ""
-                                )
-                            }
-                        }
-                    }
+                Button {
+                    activePopover = activePopover == .audio ? nil : .audio
                 } label: {
                     Image(systemName: ValenLayoutMetrics.audioTracksIcon)
                         .font(.system(size: 15, weight: .semibold))
@@ -400,39 +392,23 @@ private struct FloatingPlaybackControls: View {
                 }
                 .disabled(player.audioTracks.isEmpty)
                 .help("Audio tracks")
+                .popover(isPresented: popoverBinding(.audio), arrowEdge: .top) {
+                    AudioTrackPopover(activePopover: $activePopover)
+                        .environmentObject(player)
+                }
 
-                Menu {
-                    Button {
-                        player.selectSubtitleTrack(nil)
-                    } label: {
-                        Label(
-                            "Off",
-                            systemImage: player.selectedSubtitleID == nil ? "checkmark" : ""
-                        )
-                    }
-
-                    if !player.subtitleTracks.isEmpty {
-                        Divider()
-                    }
-
-                    ForEach(player.subtitleTracks) { track in
-                        Button {
-                            player.selectSubtitleTrack(track)
-                        } label: {
-                            Label(
-                                track.displayName,
-                                systemImage: player.selectedSubtitleID == track.id ? "checkmark" : ""
-                            )
-                        }
-                    }
+                Button {
+                    activePopover = activePopover == .subtitles ? nil : .subtitles
                 } label: {
                     Image(systemName: subtitleIcon)
                         .font(.system(size: 15, weight: .semibold))
                         .frame(width: 26, height: 26)
                 }
                 .help("Subtitles")
-
-                AppInfoButton(appInfoVisible: $appInfoVisible)
+                .popover(isPresented: popoverBinding(.subtitles), arrowEdge: .top) {
+                    SubtitleTrackPopover(activePopover: $activePopover)
+                        .environmentObject(player)
+                }
 
                 Button {
                     player.openFilePanel()
@@ -486,113 +462,123 @@ private struct FloatingPlaybackControls: View {
     private var subtitleIcon: String {
         player.selectedSubtitleID == nil ? ValenLayoutMetrics.subtitlesInactiveIcon : ValenLayoutMetrics.subtitlesActiveIcon
     }
+
+    private func popoverBinding(_ popover: ControlPopover) -> Binding<Bool> {
+        Binding(
+            get: { activePopover == popover },
+            set: { isPresented in
+                activePopover = isPresented ? popover : nil
+            }
+        )
+    }
 }
 
-private struct AppInfoButton: View {
-    @Binding var appInfoVisible: Bool
+private struct AudioTrackPopover: View {
+    @EnvironmentObject private var player: PlayerModel
+    @Binding var activePopover: ControlPopover?
 
     var body: some View {
-        Button {
-            appInfoVisible.toggle()
-        } label: {
-            Image(systemName: ValenLayoutMetrics.appInfoIcon)
-                .font(.system(size: 16, weight: .semibold))
-                .frame(width: 26, height: 26)
-        }
-        .help("About Valen")
-        .popover(isPresented: $appInfoVisible, arrowEdge: .top) {
-            AppInfoPopover()
+        TrackPopoverContainer(title: "Audio Tracks") {
+            if player.audioTracks.isEmpty {
+                Text("No audio tracks")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+            } else {
+                ForEach(player.audioTracks) { track in
+                    TrackOptionButton(
+                        title: track.displayName,
+                        isSelected: player.selectedAudioID == track.id
+                    ) {
+                        player.selectAudioTrack(track)
+                        activePopover = nil
+                    }
+                }
+            }
         }
     }
 }
 
-private struct AppInfoPopover: View {
-    private let info = AppInfo.current
+private struct SubtitleTrackPopover: View {
+    @EnvironmentObject private var player: PlayerModel
+    @Binding var activePopover: ControlPopover?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack(spacing: 12) {
-                Image(nsImage: NSApp.applicationIconImage)
-                    .resizable()
-                    .frame(width: 46, height: 46)
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
-
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(info.name)
-                        .font(.title3.weight(.semibold))
-
-                    Text(info.description)
-                        .font(.callout)
-                        .foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
+        TrackPopoverContainer(title: "Subtitles") {
+            TrackOptionButton(
+                title: "Off",
+                isSelected: player.selectedSubtitleID == nil
+            ) {
+                player.selectSubtitleTrack(nil)
+                activePopover = nil
             }
 
-            Divider()
+            if !player.subtitleTracks.isEmpty {
+                Divider()
+                    .padding(.vertical, 4)
+            }
 
-            VStack(alignment: .leading, spacing: 10) {
-                InfoRow(label: "Version", value: "\(info.version) (\(info.build))")
-
-                HStack(alignment: .firstTextBaseline) {
-                    Text("Creator")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(.secondary)
-                        .frame(width: 72, alignment: .leading)
-
-                    Link("@junwatu", destination: URL(string: "https://x.com/junwatu")!)
-                        .font(.caption)
+            ForEach(player.subtitleTracks) { track in
+                TrackOptionButton(
+                    title: track.displayName,
+                    isSelected: player.selectedSubtitleID == track.id
+                ) {
+                    player.selectSubtitleTrack(track)
+                    activePopover = nil
                 }
-
-                InfoRow(label: "Year", value: info.year)
             }
         }
-        .padding(16)
+    }
+}
+
+private struct TrackPopoverContainer<Content: View>: View {
+    let title: String
+    @ViewBuilder var content: Content
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title)
+                .font(.headline)
+                .padding(.horizontal, 12)
+                .padding(.top, 12)
+
+            ScrollView {
+                VStack(alignment: .leading, spacing: 4) {
+                    content
+                }
+                .padding(.horizontal, 8)
+                .padding(.bottom, 8)
+            }
+            .frame(maxHeight: 260)
+        }
         .frame(width: 340)
     }
 }
 
-private struct InfoRow: View {
-    let label: String
-    let value: String
+private struct TrackOptionButton: View {
+    let title: String
+    let isSelected: Bool
+    let action: () -> Void
 
     var body: some View {
-        HStack(alignment: .top) {
-            Text(label)
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(.secondary)
-                .frame(width: 72, alignment: .leading)
+        Button(action: action) {
+            HStack(spacing: 10) {
+                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                    .foregroundStyle(isSelected ? .blue : .secondary)
 
-            Text(value)
-                .font(.caption)
-                .textSelection(.enabled)
-                .frame(maxWidth: .infinity, alignment: .leading)
+                Text(title)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
+
+                Spacer(minLength: 0)
+            }
+            .font(.callout)
+            .contentShape(Rectangle())
+            .padding(.horizontal, 8)
+            .padding(.vertical, 7)
         }
-    }
-}
-
-private struct AppInfo {
-    let name: String
-    let description: String
-    let version: String
-    let build: String
-    let year: String
-
-    static var current: AppInfo {
-        let info = Bundle.main.infoDictionary ?? [:]
-        let name = info["CFBundleDisplayName"] as? String
-            ?? info["CFBundleName"] as? String
-            ?? "Valen"
-        let version = info["CFBundleShortVersionString"] as? String ?? "Development"
-        let build = info["CFBundleVersion"] as? String ?? "local"
-        let year = String(Calendar.current.component(.year, from: Date()))
-
-        return AppInfo(
-            name: name,
-            description: "A native macOS media player powered by mpv.",
-            version: version,
-            build: build,
-            year: year
-        )
+        .buttonStyle(.plain)
     }
 }
 

@@ -38,7 +38,7 @@
 - Audio track selector
 - Subtitle track selector
 - Native Settings window
-- App info popover with title, description, version, creator, and year
+- Native About panel with title, description, version, creator, and year
 - Per-video saved state:
   - resume position
   - selected audio track
@@ -117,7 +117,7 @@ Scripts/build-app.sh
 This creates:
 
 - `dist/Valen.app`
-- `dist/Valen-0.1.0-macos-arm64.zip`
+- `dist/Valen-0.1.1-macos-arm64.zip`
 
 The generated app bundle includes `libmpv` and Homebrew runtime dylib dependencies under `Contents/Frameworks`.
 
@@ -130,7 +130,7 @@ Sparkle update scaffolding is included, but Sparkle is not fully embedded yet.
 
 Current files:
 
-- `Sources/mpvdesk/SparkleUpdater.swift`
+- `Packaging/Sources/mpvdesk/SparkleUpdater.swift`
 - `Packaging/appcast.example.xml`
 
 To include a Sparkle feed URL in the generated bundle:
@@ -157,18 +157,6 @@ See [Docs/Rendering.md](Docs/Rendering.md) for the rendering roadmap and Metal i
 ```text
 Valen.xcodeproj/
 Package.swift
-Sources/
-  CMpv/
-    module.modulemap
-  mpvdesk/
-    AppPreferences.swift
-    ContentView.swift
-    MPVClient.swift
-    MpvdeskApp.swift
-    PlayerModel.swift
-    SettingsView.swift
-    SparkleUpdater.swift
-    VideoSurfaceView.swift
 Docs/
   Rendering.md
 Icons/
@@ -177,6 +165,20 @@ Xcode/
   Resources/
     Valen.icns
 Packaging/
+  Sources/
+    CMpv/
+      module.modulemap
+    mpvdesk/
+      AppPreferences.swift
+      AppInfo.swift
+      ContentView.swift
+      LayoutMetrics.swift
+      MPVClient.swift
+      MpvdeskApp.swift
+      PlayerModel.swift
+      SettingsView.swift
+      SparkleUpdater.swift
+      VideoSurfaceView.swift
   Valen.entitlements
   appcast.example.xml
 Scripts/
