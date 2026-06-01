@@ -26,9 +26,7 @@
 - Real Xcode app target: `Valen.xcodeproj`
 - Swift Package target for quick local development
 - mpv playback through `libmpv`
-- Embedded rendering through `mpv_render_context`
 - MKV, WebM, MP4, MOV, AVI, FLAC, OGG, WAV, and common media extension support
-- macOS file association metadata for Finder and Open With
 - Open files with `Command-O`
 - Drag and drop media files
 - Compact QuickTime-style translucent overlay controls
@@ -38,17 +36,13 @@
 - Audio track selector
 - Subtitle track selector
 - Native Settings window
-- Native About panel with title, description, version, creator, and year
 - Per-video saved state:
   - resume position
   - selected audio track
   - selected subtitle track
   - subtitles off/on state
   - volume
-- Debug log panel for mpv diagnostics
-- App bundle generation with bundled Homebrew `libmpv` runtime libraries
-- Developer ID signing and notarization script scaffolding
-- Sparkle auto-update scaffolding
+- MCP server (stdio + Unix socket) for AI agent control
 
 ## Shortcuts
 
@@ -152,6 +146,62 @@ Valen currently uses `NSOpenGLView` because mpv exposes a stable OpenGL render A
 
 See [Docs/Rendering.md](Docs/Rendering.md) for the rendering roadmap and Metal investigation checklist.
 
+## MCP Server
+
+Valen ships with an embedded [Model Context Protocol](https://modelcontextprotocol.io) server so AI agents (Claude Code, Claude Desktop, etc.) can drive the player.
+
+The `valen-mcp` executable reads JSON-RPC over stdio and forwards calls to the running GUI through a Unix domain socket. The GUI listens on `$TMPDIR/valen-control.sock` whenever the app is running.
+
+### Tools
+
+| Tool             | Args                      | Description                                   |
+| ---------------- | ------------------------- | --------------------------------------------- |
+| `play`           | -                         | Resume playback                               |
+| `pause`          | -                         | Pause playback                                |
+| `toggle_play_pause` | -                      | Toggle play/pause                             |
+| `open_file`      | `path` (string)           | Open a local file by absolute path            |
+| `seek`           | `seconds` (number)        | Seek relative to current position             |
+| `set_volume`     | `value` (0-200)           | Set volume; 100 = unity, 200 = max            |
+| `set_speed`      | `value` (>0)              | Set playback speed multiplier                 |
+| `get_state`      | -                         | Return current `isPaused`, `volume`, `speed`, `position`, `duration`, `currentFile` |
+
+### Build
+
+```bash
+swift build
+```
+
+The binaries land in `.build/debug/valen` and `.build/debug/valen-mcp`.
+
+### Smoke test
+
+Start the GUI once so the socket exists, then pipe JSON-RPC through the MCP binary:
+
+```bash
+.build/debug/valen &
+printf '%s\n' \
+  '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"smoke","version":"0.0.1"}}}' \
+  '{"jsonrpc":"2.0","method":"notifications/initialized"}' \
+  '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"get_state","arguments":{}}}' \
+  | .build/debug/valen-mcp
+```
+
+### Claude Desktop
+
+Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "valen": {
+      "command": "/absolute/path/to/mpvdesk/.build/release/valen-mcp"
+    }
+  }
+}
+```
+
+Launch Claude Desktop while the Valen app is running and the eight tools appear in the tools menu.
+
 ## Project Layout
 
 ```text
@@ -168,10 +218,14 @@ Packaging/
   Sources/
     CMpv/
       module.modulemap
+    ValenControl/
+      ControlClient.swift
+      ControlProtocol.swift
     mpvdesk/
       AppPreferences.swift
       AppInfo.swift
       ContentView.swift
+      ControlServer.swift
       LayoutMetrics.swift
       MPVClient.swift
       MpvdeskApp.swift
@@ -179,6 +233,8 @@ Packaging/
       SettingsView.swift
       SparkleUpdater.swift
       VideoSurfaceView.swift
+    valen-mcp/
+      main.swift
   Valen.entitlements
   appcast.example.xml
 Scripts/
