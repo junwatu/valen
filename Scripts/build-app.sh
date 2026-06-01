@@ -24,12 +24,13 @@ ICON_FILE="$RESOURCES_DIR/Valen.icns"
 
 cd "$ROOT_DIR"
 
-swift build -c release --product "$EXECUTABLE_NAME"
+swift build -c release
 
 rm -rf "$APP_DIR" "$ICONSET_DIR"
 mkdir -p "$MACOS_DIR" "$FRAMEWORKS_DIR" "$RESOURCES_DIR" "$ICONSET_DIR"
 
 cp "$BUILD_DIR/$EXECUTABLE_NAME" "$MACOS_DIR/$EXECUTABLE_NAME"
+cp "$BUILD_DIR/valen-mcp" "$MACOS_DIR/valen-mcp"
 
 cat > "$CONTENTS_DIR/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>

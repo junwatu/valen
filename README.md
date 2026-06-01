@@ -188,13 +188,13 @@ printf '%s\n' \
 
 ### Claude Desktop
 
-Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
+`valen-mcp` ships inside the app bundle at `Valen.app/Contents/MacOS/valen-mcp`. Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
 
 ```json
 {
   "mcpServers": {
     "valen": {
-      "command": "/absolute/path/to/mpvdesk/.build/release/valen-mcp"
+      "command": "/Applications/Valen.app/Contents/MacOS/valen-mcp"
     }
   }
 }
