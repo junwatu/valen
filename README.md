@@ -111,7 +111,7 @@ Scripts/build-app.sh
 This creates:
 
 - `dist/Valen.app`
-- `dist/Valen-0.1.2-macos-arm64.zip`
+- `dist/Valen-0.2.0-macos-arm64.zip`
 
 The generated app bundle includes `libmpv` and Homebrew runtime dylib dependencies under `Contents/Frameworks`.
 

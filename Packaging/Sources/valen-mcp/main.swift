@@ -43,7 +43,7 @@ struct TextContent: Codable {
 
 let serverInfo: [String: String] = [
     "name": "valen-mcp",
-    "version": "0.1.2"
+    "version": "0.2.0"
 ]
 
 let protocolVersion = "2024-11-05"
