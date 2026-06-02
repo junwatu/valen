@@ -168,9 +168,26 @@ func jsonLine(_ data: Data) {
 func send(_ response: MCPResponse) {
     let encoder = JSONEncoder()
     encoder.outputFormatting = [.sortedKeys]
-    if let data = try? encoder.encode(response) {
+    do {
+        let data = try encoder.encode(response)
         jsonLine(data)
+    } catch {
+        FileHandle.standardError.write(Data("valen-mcp: failed to encode response: \(error)\n".utf8))
+        if let idValue = response.id {
+            let fallback = "{\"error\":\"internal encode failure\",\"id\":\(encodeJSON(idValue))}\n"
+            if let data = fallback.data(using: .utf8) {
+                FileHandle.standardOutput.write(data)
+            }
+        }
     }
+}
+
+func encodeJSON(_ value: Any) -> String {
+    guard let data = try? JSONSerialization.data(withJSONObject: value, options: [.sortedKeys]),
+          let string = String(data: data, encoding: .utf8) else {
+        return "null"
+    }
+    return string
 }
 
 func fail(id: AnyCodable?, code: Int, message: String) -> MCPResponse {
