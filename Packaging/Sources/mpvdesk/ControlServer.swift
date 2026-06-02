@@ -5,6 +5,8 @@ import ValenControl
 #endif
 
 final class ControlServer: @unchecked Sendable {
+    static let maxRequestBytes = 1_048_576
+
     private let player: PlayerModel
     private let socketURL: URL
     private let queue = DispatchQueue(label: "dev.valen.control.io", qos: .userInitiated)
@@ -122,6 +124,13 @@ final class ControlServer: @unchecked Sendable {
     private func handleConnection(_ fd: Int32) {
         defer { close(fd) }
 
+        var timeout = timeval(tv_sec: 5, tv_usec: 0)
+        _ = withUnsafePointer(to: &timeout) { ptr -> Int32 in
+            ptr.withMemoryRebound(to: timeval.self, capacity: 1) { rebound in
+                setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, rebound, socklen_t(MemoryLayout<timeval>.size))
+            }
+        }
+
         var received = Data()
         var buffer = [UInt8](repeating: 0, count: 4096)
         while true {
@@ -129,6 +138,10 @@ final class ControlServer: @unchecked Sendable {
                 Darwin.read(fd, buf.baseAddress, buf.count)
             }
             if n > 0 {
+                if received.count + n > ControlServer.maxRequestBytes {
+                    writeResponse(fd: fd, response: .fail(id: 0, message: "request too large"))
+                    return
+                }
                 received.append(buffer, count: n)
             } else {
                 break
