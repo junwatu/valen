@@ -1,6 +1,8 @@
 import AppKit
 import Foundation
+#if SWIFT_PACKAGE
 import ValenControl
+#endif
 
 final class ControlServer: @unchecked Sendable {
     private let player: PlayerModel
@@ -182,7 +184,7 @@ final class ControlServer: @unchecked Sendable {
             return .ok(id: id)
 
         case ControlMethod.openFile.rawValue:
-            guard let path = params.string(for: "path"), !path.isEmpty else {
+            guard let path = ControlCommandPolicy.validOpenPath(params.string(for: "path")) else {
                 return .fail(id: id, message: "missing 'path'")
             }
             player.load(URL(fileURLWithPath: path))
@@ -204,7 +206,7 @@ final class ControlServer: @unchecked Sendable {
             guard let value = params.double(for: "value") else {
                 return .fail(id: id, message: "missing 'value'")
             }
-            let clamped = max(0, min(value, 150))
+            let clamped = ControlCommandPolicy.clampVolume(value)
             player.volume = clamped
             player.setVolume(clamped)
             return .ok(id: id)
@@ -213,7 +215,7 @@ final class ControlServer: @unchecked Sendable {
             guard let speed = params.double(for: "speed") else {
                 return .fail(id: id, message: "missing 'speed'")
             }
-            player.setSpeed(max(0.25, min(speed, 4.0)))
+            player.setSpeed(ControlCommandPolicy.clampSpeed(speed))
             return .ok(id: id)
 
         case ControlMethod.getState.rawValue:

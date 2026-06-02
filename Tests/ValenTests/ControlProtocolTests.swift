@@ -93,4 +93,24 @@ final class ControlProtocolTests: XCTestCase {
         XCTAssertEqual(decoded.volume, 80)
         XCTAssertEqual(decoded.speed, 1.5)
     }
+
+    func testControlPolicyRejectsMissingOpenPath() {
+        XCTAssertNil(ControlCommandPolicy.validOpenPath(nil))
+        XCTAssertNil(ControlCommandPolicy.validOpenPath(""))
+        XCTAssertNil(ControlCommandPolicy.validOpenPath("   "))
+    }
+
+    func testControlPolicyTrimsOpenPath() {
+        XCTAssertEqual(ControlCommandPolicy.validOpenPath("  /Users/example/movie.mkv\n"), "/Users/example/movie.mkv")
+    }
+
+    func testControlPolicyClampsVolumeAndSpeed() {
+        XCTAssertEqual(ControlCommandPolicy.clampVolume(-10), 0)
+        XCTAssertEqual(ControlCommandPolicy.clampVolume(80), 80)
+        XCTAssertEqual(ControlCommandPolicy.clampVolume(200), 150)
+
+        XCTAssertEqual(ControlCommandPolicy.clampSpeed(0.1), 0.25)
+        XCTAssertEqual(ControlCommandPolicy.clampSpeed(1.25), 1.25)
+        XCTAssertEqual(ControlCommandPolicy.clampSpeed(10), 4.0)
+    }
 }

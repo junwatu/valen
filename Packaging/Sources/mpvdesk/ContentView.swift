@@ -124,7 +124,13 @@ struct ContentView: View {
     }
 
     private var shouldShowControls: Bool {
-        player.isPaused || player.currentFile == nil || player.isDebugVisible || activeControlPopover != nil || isPointerActive
+        OverlayVisibilityPolicy.shouldShowControls(
+            isPaused: player.isPaused,
+            hasCurrentFile: player.currentFile != nil,
+            isDebugVisible: player.isDebugVisible,
+            hasActivePopover: activeControlPopover != nil,
+            isPointerActive: isPointerActive
+        )
     }
 
     private func showControlsTemporarily() {
@@ -144,8 +150,13 @@ struct ContentView: View {
     }
 
     private func updateCursorVisibility() {
-        let pointerCanBeHidden = player.isFullscreen || isPointerInside
-        let shouldHideCursor = pointerCanBeHidden && player.currentFile != nil && !player.isPaused && !shouldShowControls
+        let shouldHideCursor = OverlayVisibilityPolicy.shouldHideCursor(
+            isFullscreen: player.isFullscreen,
+            isPointerInside: isPointerInside,
+            hasCurrentFile: player.currentFile != nil,
+            isPaused: player.isPaused,
+            shouldShowControls: shouldShowControls
+        )
 
         if shouldHideCursor, !isCursorHidden {
             NSCursor.hide()

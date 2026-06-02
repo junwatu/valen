@@ -2,7 +2,9 @@ import AppKit
 import Combine
 import SwiftUI
 import UniformTypeIdentifiers
+#if SWIFT_PACKAGE
 import ValenControl
+#endif
 
 @MainActor
 final class PlayerModel: ObservableObject {
@@ -74,7 +76,7 @@ final class PlayerModel: ObservableObject {
         panel.allowsMultipleSelection = false
         panel.canChooseFiles = true
         panel.canChooseDirectories = false
-        panel.allowedContentTypes = Self.supportedMediaTypes
+        panel.allowedContentTypes = SupportedMediaTypes.contentTypes
 
         if panel.runModal() == .OK, let url = panel.url {
             load(url)
@@ -360,7 +362,7 @@ final class PlayerModel: ObservableObject {
                 selectedSubtitleID = subtitleTrackID
             }
 
-            if state.position > 5, state.position < max(duration - 5, 0) {
+            if PlaybackStatePolicy.shouldRestorePosition(state.position, duration: duration) {
                 position = state.position
                 try mpv.command(["seek", String(state.position), "absolute"])
             }
@@ -376,15 +378,16 @@ final class PlayerModel: ObservableObject {
     }
 
     private func savePlaybackState() {
-        guard let currentFile, duration > 0 else {
+        guard let currentFile else {
             return
         }
 
-        guard AppPreferences.resumePlayback else {
-            return
-        }
-
-        guard didApplyRestoreState || pendingRestoreState == nil else {
+        guard PlaybackStatePolicy.canSave(
+            duration: duration,
+            resumeEnabled: AppPreferences.resumePlayback,
+            didApplyRestoreState: didApplyRestoreState,
+            hasPendingRestoreState: pendingRestoreState != nil
+        ) else {
             return
         }
 
@@ -417,23 +420,6 @@ final class PlayerModel: ObservableObject {
         formatter.dateFormat = "HH:mm:ss.SSS"
         return formatter
     }()
-
-    private static let supportedMediaTypes: [UTType] = [
-        .movie,
-        .video,
-        .audio,
-        .audiovisualContent,
-        .mpeg4Movie,
-        .quickTimeMovie,
-        .mp3,
-        .wav,
-        UTType(filenameExtension: "mkv")!,
-        UTType(filenameExtension: "mka")!,
-        UTType(filenameExtension: "webm")!,
-        UTType(filenameExtension: "flac")!,
-        UTType(filenameExtension: "ogg")!,
-        UTType(filenameExtension: "avi")!
-    ]
 
     static func formatTime(_ seconds: Double) -> String {
         guard seconds.isFinite, seconds > 0 else { return "00:00" }

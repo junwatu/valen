@@ -42,4 +42,23 @@ final class AppPreferencesTests: XCTestCase {
         XCTAssertEqual(AppPreferences.keyboardSeekSeconds, 15.0)
         XCTAssertEqual(AppPreferences.defaultVolume, 55.0)
     }
+
+    func testSettingsOptionsStayWithinExpectedBounds() {
+        XCTAssertEqual(AppPreferenceOptions.keyboardSeekSeconds, [5.0, 10.0, 30.0])
+        XCTAssertEqual(AppPreferenceOptions.autoHideDelayRange.lowerBound, 1.0)
+        XCTAssertEqual(AppPreferenceOptions.autoHideDelayRange.upperBound, 5.0)
+        XCTAssertEqual(AppPreferenceOptions.autoHideDelayStep, 0.5)
+        XCTAssertEqual(AppPreferenceOptions.defaultVolumeRange.lowerBound, 0.0)
+        XCTAssertEqual(AppPreferenceOptions.defaultVolumeRange.upperBound, 100.0)
+        XCTAssertEqual(AppPreferenceOptions.defaultVolumeStep, 5.0)
+    }
+
+    func testPreferenceKeysStayStableForExistingUsers() {
+        XCTAssertEqual(AppPreferenceKeys.resumePlayback, "dev.valen.preferences.resumePlayback")
+        XCTAssertEqual(AppPreferenceKeys.rememberTrackSelection, "dev.valen.preferences.rememberTrackSelection")
+        XCTAssertEqual(AppPreferenceKeys.autoHideControls, "dev.valen.preferences.autoHideControls")
+        XCTAssertEqual(AppPreferenceKeys.autoHideDelay, "dev.valen.preferences.autoHideDelay")
+        XCTAssertEqual(AppPreferenceKeys.keyboardSeekSeconds, "dev.valen.preferences.keyboardSeekSeconds")
+        XCTAssertEqual(AppPreferenceKeys.defaultVolume, "dev.valen.preferences.defaultVolume")
+    }
 }

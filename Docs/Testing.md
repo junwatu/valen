@@ -17,15 +17,27 @@ swift test
 - `AppPreferencesTests`
   - registered defaults
   - explicit user preference overrides
+  - settings option bounds and stable preference keys
 - `LayoutMetricsTests`
   - empty state copy and icon contract
   - overlay opacity, corner radius, and semantic icons
+- `OverlayVisibilityPolicyTests`
+  - overlay visibility rules for paused, idle, debug, and popover states
+  - cursor-hide rules while video is playing
+- `SupportedMediaTypesTests`
+  - media extensions accepted by open panel policy
+  - custom containers such as MKV, WebM, and FLAC
+- `PlaybackStatePolicyTests`
+  - resume-state save guards
+  - restore-position edge cases near the start and end of a video
 - `ControlProtocolTests`
   - control request/response encoding
   - `AnyCodable` JSON support
   - control method names and state round trips
+  - control input validation and volume/speed clamping
 - `ReleaseMetadataTests`
   - release version alignment across build scripts, Xcode metadata, README, appcast, release notes, and MCP server metadata
+  - generated app bundle metadata contract for document types and media associations
 
 ## What These Tests Protect
 

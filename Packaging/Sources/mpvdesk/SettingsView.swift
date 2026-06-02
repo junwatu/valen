@@ -15,15 +15,19 @@ struct SettingsView: View {
                 Toggle("Remember audio and subtitle track per video", isOn: $rememberTrackSelection)
 
                 Picker("Keyboard seek", selection: $keyboardSeekSeconds) {
-                    Text("5 seconds").tag(5.0)
-                    Text("10 seconds").tag(10.0)
-                    Text("30 seconds").tag(30.0)
+                    ForEach(AppPreferenceOptions.keyboardSeekSeconds, id: \.self) { seconds in
+                        Text("\(Int(seconds)) seconds").tag(seconds)
+                    }
                 }
                 .pickerStyle(.segmented)
 
                 HStack {
                     Text("Default volume")
-                    Slider(value: $defaultVolume, in: 0...100, step: 5)
+                    Slider(
+                        value: $defaultVolume,
+                        in: AppPreferenceOptions.defaultVolumeRange,
+                        step: AppPreferenceOptions.defaultVolumeStep
+                    )
                     Text("\(Int(defaultVolume))%")
                         .foregroundStyle(.secondary)
                         .frame(width: 42, alignment: .trailing)
@@ -35,7 +39,11 @@ struct SettingsView: View {
 
                 HStack {
                     Text("Hide after")
-                    Slider(value: $autoHideDelay, in: 1...5, step: 0.5)
+                    Slider(
+                        value: $autoHideDelay,
+                        in: AppPreferenceOptions.autoHideDelayRange,
+                        step: AppPreferenceOptions.autoHideDelayStep
+                    )
                         .disabled(!autoHideControls)
                     Text("\(autoHideDelay, specifier: "%.1f")s")
                         .foregroundStyle(.secondary)

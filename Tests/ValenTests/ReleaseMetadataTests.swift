@@ -34,6 +34,21 @@ final class ReleaseMetadataTests: XCTestCase {
         XCTAssertEqual(enclosure.attribute(forName: "url")?.stringValue, "https://example.com/valen/Valen-0.2.0-macos-arm64.zip")
     }
 
+    func testBuildScriptDeclaresExpectedBundleDocumentTypes() throws {
+        let buildScript = try releaseFiles().buildScript
+
+        XCTAssertContains(buildScript, "<key>CFBundleDocumentTypes</key>")
+        XCTAssertContains(buildScript, "<key>UTImportedTypeDeclarations</key>")
+        XCTAssertContains(buildScript, "<string>org.matroska.mkv</string>")
+        XCTAssertContains(buildScript, "<string>org.webmproject.webm</string>")
+        XCTAssertContains(buildScript, "<string>org.xiph.flac</string>")
+        XCTAssertContains(buildScript, "<key>LSHandlerRank</key>")
+
+        for fileExtension in ["mkv", "mka", "webm", "mp4", "mov", "m4v", "avi", "flv", "wmv", "mp3", "flac", "ogg", "wav"] {
+            XCTAssertContains(buildScript, "<string>\(fileExtension)</string>")
+        }
+    }
+
     private func releaseFiles() throws -> ReleaseFiles {
         let root = repositoryRoot()
         return ReleaseFiles(

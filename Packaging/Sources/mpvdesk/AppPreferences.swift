@@ -45,3 +45,11 @@ enum AppPreferences {
         UserDefaults.standard.object(forKey: AppPreferenceKeys.defaultVolume) as? Double ?? 80.0
     }
 }
+
+enum AppPreferenceOptions {
+    static let keyboardSeekSeconds = [5.0, 10.0, 30.0]
+    static let autoHideDelayRange = 1.0...5.0
+    static let autoHideDelayStep = 0.5
+    static let defaultVolumeRange = 0.0...100.0
+    static let defaultVolumeStep = 5.0
+}
