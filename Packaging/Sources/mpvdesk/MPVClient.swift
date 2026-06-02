@@ -28,6 +28,7 @@ enum MPVError: LocalizedError {
 final class MPVClient {
     private var handle: OpaquePointer?
     private var renderContext: OpaquePointer?
+    private var renderCallbackUserData: UnsafeMutableRawPointer?
     private weak var renderTarget: (any VideoRenderSurface)?
 
     func initialize() throws {
@@ -94,10 +95,12 @@ final class MPVClient {
         }
 
         renderContext = context
+        let userData = Unmanaged.passRetained(view).toOpaque()
+        renderCallbackUserData = userData
         mpv_render_context_set_update_callback(
             context,
             mpvRenderUpdateCallback,
-            Unmanaged.passUnretained(view).toOpaque()
+            userData
         )
     }
 
@@ -107,6 +110,10 @@ final class MPVClient {
             mpv_render_context_set_update_callback(renderContext, nil, nil)
             mpv_render_context_free(renderContext)
             self.renderContext = nil
+        }
+        if let userData = renderCallbackUserData {
+            Unmanaged<MPVHostView>.fromOpaque(userData).release()
+            renderCallbackUserData = nil
         }
         renderTarget = nil
     }
