@@ -85,10 +85,12 @@ struct ContentView: View {
                 isPointerActive = false
                 hideControlsTask?.cancel()
             }
+            updateCursorVisibility()
         }
         .onChange(of: player.currentFile) { _, newFile in
             showControlsTemporarily()
             NSApp.windows.forEach { $0.title = newFile?.lastPathComponent ?? "Valen" }
+            updateCursorVisibility()
         }
         .onChange(of: activeControlPopover) { _, activePopover in
             if activePopover == nil {
@@ -99,12 +101,6 @@ struct ContentView: View {
             }
         }
         .onChange(of: shouldShowControls) { _, _ in
-            updateCursorVisibility()
-        }
-        .onChange(of: player.isPaused) { _, _ in
-            updateCursorVisibility()
-        }
-        .onChange(of: player.currentFile) { _, _ in
             updateCursorVisibility()
         }
         .onDisappear {
