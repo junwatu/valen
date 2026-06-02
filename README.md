@@ -99,7 +99,9 @@ Run the unit and layout-contract tests:
 swift test
 ```
 
-The tests cover time formatting, media track labels, saved playback state, preference defaults, and stable UI copy/icons/metrics for the empty state and playback overlay.
+The tests cover time formatting, media track labels, saved playback state, preference defaults, MCP protocol encoding, release metadata, and stable UI copy/icons/metrics for the empty state and playback overlay.
+
+See [Docs/Testing.md](Docs/Testing.md) for the test map and guidance on when to add more tests.
 
 ## Build Distributable App
 
