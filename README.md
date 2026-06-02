@@ -147,6 +147,10 @@ Valen currently uses `NSOpenGLView` because mpv exposes a stable OpenGL render A
 
 See [Docs/Rendering.md](Docs/Rendering.md) for the rendering roadmap and Metal investigation checklist.
 
+## Roadmap
+
+See [Docs/Roadmap.md](Docs/Roadmap.md) for the subtitle-focused and AI-assisted playback TODO list.
+
 ## MCP Server
 
 Valen ships with an embedded [Model Context Protocol](https://modelcontextprotocol.io) server so AI agents (Claude Code, Claude Desktop, etc.) can drive the player.
