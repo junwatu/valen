@@ -3,34 +3,13 @@ import SwiftUI
 @main
 struct ValenApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
-    @StateObject private var player = PlayerModel()
     @StateObject private var updater = SparkleUpdaterController()
-    @State private var controlServer: ControlServer?
-
-    init() {
-        AppPreferences.registerDefaults()
-    }
 
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .environmentObject(player)
+                .environmentObject(appDelegate.player)
                 .frame(minWidth: 480, minHeight: 280)
-                .task {
-                    if controlServer == nil {
-                        let server = ControlServer(player: player)
-                        do {
-                            try server.start()
-                            controlServer = server
-                        } catch {
-                            NSLog("[valen] control server failed to start: \(error.localizedDescription)")
-                        }
-                    }
-                }
-                .onDisappear {
-                    controlServer?.stop()
-                    controlServer = nil
-                }
         }
         .windowResizability(.contentMinSize)
         .windowStyle(.titleBar)
@@ -43,34 +22,34 @@ struct ValenApp: App {
 
             CommandGroup(replacing: .newItem) {
                 Button("Open File...") {
-                    player.openFilePanel()
+                    appDelegate.player.openFilePanel()
                 }
                 .keyboardShortcut("o", modifiers: [.command])
             }
 
             CommandMenu("Playback") {
-                Button(player.isPaused ? "Play" : "Pause") {
-                    player.togglePlayPause()
+                Button(appDelegate.player.isPaused ? "Play" : "Pause") {
+                    appDelegate.player.togglePlayPause()
                 }
                 .keyboardShortcut(.space, modifiers: [])
 
                 Button("Seek Back 10 Seconds") {
-                    player.seek(relativeSeconds: -10)
+                    appDelegate.player.seek(relativeSeconds: -10)
                 }
                 .keyboardShortcut(.leftArrow, modifiers: [])
 
                 Button("Seek Forward 10 Seconds") {
-                    player.seek(relativeSeconds: 10)
+                    appDelegate.player.seek(relativeSeconds: 10)
                 }
                 .keyboardShortcut(.rightArrow, modifiers: [])
 
-                Button(player.isFullscreen ? "Exit Full Screen" : "Enter Full Screen") {
-                    player.toggleFullscreen()
+                Button(appDelegate.player.isFullscreen ? "Exit Full Screen" : "Enter Full Screen") {
+                    appDelegate.player.toggleFullscreen()
                 }
                 .keyboardShortcut("f", modifiers: [.command, .control])
 
-                Button(player.isDebugVisible ? "Hide Logs" : "Show Logs") {
-                    player.isDebugVisible.toggle()
+                Button(appDelegate.player.isDebugVisible ? "Hide Logs" : "Show Logs") {
+                    appDelegate.player.isDebugVisible.toggle()
                 }
                 .keyboardShortcut("l", modifiers: [.command, .shift])
             }
@@ -90,7 +69,31 @@ struct ValenApp: App {
     }
 }
 
+@MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
+    let player = PlayerModel()
+    private var controlServer: ControlServer?
+
+    override init() {
+        super.init()
+        AppPreferences.registerDefaults()
+    }
+
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        let server = ControlServer(player: player)
+        do {
+            try server.start()
+            controlServer = server
+        } catch {
+            NSLog("[valen] control server failed to start: \(error.localizedDescription)")
+        }
+    }
+
+    func applicationWillTerminate(_ notification: Notification) {
+        controlServer?.stop()
+        controlServer = nil
+    }
+
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         true
     }
