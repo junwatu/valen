@@ -12,7 +12,7 @@ public enum ControlConstants {
 public enum ControlMethod: String, Codable, CaseIterable, Sendable {
     case play
     case pause
-    case togglePlayPause
+    case togglePlayPause = "toggle_play_pause"
     case openFile = "open_file"
     case seek
     case setVolume = "set_volume"

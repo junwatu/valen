@@ -35,6 +35,9 @@ swift test
   - `AnyCodable` JSON support
   - control method names and state round trips
   - control input validation and volume/speed clamping
+- `MCPLiveControlTests` / `MCPLiveProcessTests` (optional, requires running Valen)
+  - live control socket and `valen-mcp` stdio integration
+  - skipped automatically in CI when the GUI is not running
 - `ReleaseMetadataTests`
   - release version alignment across build scripts, Xcode metadata, README, appcast, release notes, and MCP server metadata
   - generated app bundle metadata contract for document types and media associations
@@ -61,3 +64,32 @@ Add a test when a change affects:
 - release version, appcast, packaging, or notarization metadata
 
 For UI behavior that XCTest cannot inspect directly, prefer small stable constants or parser-friendly state that can be tested without launching the full app.
+
+## Live MCP Tests (Running Valen)
+
+These tests talk to a real Valen GUI through `$TMPDIR/valen-control.sock` and optionally spawn `valen-mcp`.
+
+1. Launch Valen:
+
+```bash
+swift run valen
+```
+
+2. Run only the live MCP tests:
+
+```bash
+Scripts/test-mcp-live.sh
+```
+
+Or:
+
+```bash
+swift test --filter MCPLive
+```
+
+When Valen is not running, `MCPLiveControlTests` skip. `MCPLiveProcessTests.testMCPToolsListExposesThirteenTools` still runs without the GUI.
+
+Optional environment variables:
+
+- `VALEN_LIVE_PLAYBACK=1` — also run play/pause/toggle checks
+- `VALEN_TEST_MEDIA=/absolute/path/to/file.mkv` — run `open_file` against real media

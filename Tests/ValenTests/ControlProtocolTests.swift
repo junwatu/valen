@@ -65,7 +65,7 @@ final class ControlProtocolTests: XCTestCase {
     func testControlMethodRawValues() {
         XCTAssertEqual(ControlMethod.play.rawValue, "play")
         XCTAssertEqual(ControlMethod.pause.rawValue, "pause")
-        XCTAssertEqual(ControlMethod.togglePlayPause.rawValue, "togglePlayPause")
+        XCTAssertEqual(ControlMethod.togglePlayPause.rawValue, "toggle_play_pause")
         XCTAssertEqual(ControlMethod.openFile.rawValue, "open_file")
         XCTAssertEqual(ControlMethod.seek.rawValue, "seek")
         XCTAssertEqual(ControlMethod.setVolume.rawValue, "set_volume")
