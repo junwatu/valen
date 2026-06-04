@@ -71,6 +71,11 @@ final class ControlProtocolTests: XCTestCase {
         XCTAssertEqual(ControlMethod.setVolume.rawValue, "set_volume")
         XCTAssertEqual(ControlMethod.setSpeed.rawValue, "set_speed")
         XCTAssertEqual(ControlMethod.getState.rawValue, "get_state")
+        XCTAssertEqual(ControlMethod.listAudioTracks.rawValue, "list_audio_tracks")
+        XCTAssertEqual(ControlMethod.listSubtitleTracks.rawValue, "list_subtitle_tracks")
+        XCTAssertEqual(ControlMethod.selectAudioTrack.rawValue, "select_audio_track")
+        XCTAssertEqual(ControlMethod.selectSubtitleTrack.rawValue, "select_subtitle_track")
+        XCTAssertEqual(ControlMethod.subtitlesOff.rawValue, "subtitles_off")
     }
 
     func testControlStateRoundTrip() throws {
@@ -80,7 +85,13 @@ final class ControlProtocolTests: XCTestCase {
             position: 123.45,
             duration: 3600,
             volume: 80,
-            speed: 1.5
+            speed: 1.5,
+            selectedAudioID: 2,
+            selectedSubtitleID: 4,
+            subtitlesVisible: true,
+            activeSubtitleText: "Line one",
+            audioTracks: [],
+            subtitleTracks: []
         )
 
         let data = try JSONEncoder().encode(state)
@@ -92,6 +103,11 @@ final class ControlProtocolTests: XCTestCase {
         XCTAssertEqual(decoded.duration, 3600)
         XCTAssertEqual(decoded.volume, 80)
         XCTAssertEqual(decoded.speed, 1.5)
+        XCTAssertEqual(decoded.selectedAudioID, 2)
+        XCTAssertEqual(decoded.selectedSubtitleID, 4)
+        XCTAssertTrue(decoded.subtitlesVisible)
+        XCTAssertEqual(decoded.activeSubtitleText, "Line one")
+        XCTAssertEqual(decoded.protocolVersion, 2)
     }
 
     func testControlPolicyRejectsMissingOpenPath() {
@@ -100,8 +116,29 @@ final class ControlProtocolTests: XCTestCase {
         XCTAssertNil(ControlCommandPolicy.validOpenPath("   "))
     }
 
+    func testControlPolicyRejectsNonAbsoluteOpenPath() {
+        XCTAssertNil(ControlCommandPolicy.validAbsoluteOpenPath("movie.mkv"))
+        XCTAssertNil(ControlCommandPolicy.validAbsoluteOpenPath("relative/dir/file.mkv"))
+    }
+
     func testControlPolicyTrimsOpenPath() {
         XCTAssertEqual(ControlCommandPolicy.validOpenPath("  /Users/example/movie.mkv\n"), "/Users/example/movie.mkv")
+        XCTAssertEqual(
+            ControlCommandPolicy.validAbsoluteOpenPath("  /Users/example/movie.mkv\n"),
+            "/Users/example/movie.mkv"
+        )
+    }
+
+    func testControlPolicyValidatesTrackID() {
+        XCTAssertNil(ControlCommandPolicy.validTrackID(nil))
+        XCTAssertNil(ControlCommandPolicy.validTrackID(-1))
+        XCTAssertEqual(ControlCommandPolicy.validTrackID(0), 0)
+        XCTAssertEqual(ControlCommandPolicy.validTrackID(3), 3)
+    }
+
+    func testAnyCodableDecodesIntegerParams() throws {
+        let params = AnyCodable(["id": 2])
+        XCTAssertEqual(params.int(for: "id"), 2)
     }
 
     func testControlPolicyClampsVolumeAndSpeed() {

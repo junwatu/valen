@@ -182,6 +182,7 @@ final class ControlServer: @unchecked Sendable {
         let id = request.id
         let method = request.method
         let params = AnyCodable(request.params ?? [:])
+        player.logControlAction(method, detail: Self.paramsSummary(params))
 
         switch method {
         case ControlMethod.play.rawValue:
@@ -197,8 +198,8 @@ final class ControlServer: @unchecked Sendable {
             return .ok(id: id)
 
         case ControlMethod.openFile.rawValue:
-            guard let path = ControlCommandPolicy.validOpenPath(params.string(for: "path")) else {
-                return .fail(id: id, message: "missing 'path'")
+            guard let path = ControlCommandPolicy.validAbsoluteOpenPath(params.string(for: "path")) else {
+                return .fail(id: id, message: "missing or non-absolute 'path' (must start with /)")
             }
             player.load(URL(fileURLWithPath: path))
             return .ok(id: id)
@@ -232,21 +233,61 @@ final class ControlServer: @unchecked Sendable {
             return .ok(id: id)
 
         case ControlMethod.getState.rawValue:
-            let state = player.snapshot()
-            let dict: [String: Any] = [
-                "protocolVersion": state.protocolVersion,
-                "currentFile": state.currentFile ?? NSNull(),
-                "isPaused": state.isPaused,
-                "position": state.position,
-                "duration": state.duration,
-                "volume": state.volume,
-                "speed": state.speed
-            ]
-            return .ok(id: id, result: AnyCodable(dict))
+            return .ok(id: id, result: AnyCodable(player.snapshot().jsonDictionary))
+
+        case ControlMethod.listAudioTracks.rawValue:
+            return trackListResponse(id: id, tracks: player.audioTracks.map(\.controlInfo))
+
+        case ControlMethod.listSubtitleTracks.rawValue:
+            return trackListResponse(id: id, tracks: player.subtitleTracks.map(\.controlInfo))
+
+        case ControlMethod.selectAudioTrack.rawValue:
+            guard let trackID = ControlCommandPolicy.validTrackID(params.int(for: "id")) else {
+                return .fail(id: id, message: "missing or invalid 'id'")
+            }
+            guard let track = player.audioTracks.first(where: { $0.id == trackID }) else {
+                return .fail(id: id, message: "unknown audio track id \(trackID)")
+            }
+            player.selectAudioTrack(track)
+            return .ok(id: id)
+
+        case ControlMethod.selectSubtitleTrack.rawValue:
+            guard let trackID = ControlCommandPolicy.validTrackID(params.int(for: "id")) else {
+                return .fail(id: id, message: "missing or invalid 'id'")
+            }
+            guard let track = player.subtitleTracks.first(where: { $0.id == trackID }) else {
+                return .fail(id: id, message: "unknown subtitle track id \(trackID)")
+            }
+            player.selectSubtitleTrack(track)
+            return .ok(id: id)
+
+        case ControlMethod.subtitlesOff.rawValue:
+            player.selectSubtitleTrack(nil)
+            return .ok(id: id)
 
         default:
             return .fail(id: id, message: "unknown method '\(method)'")
         }
+    }
+
+    @MainActor
+    private func trackListResponse(id: Int, tracks: [ControlTrackInfo]) -> ControlResponse {
+        guard let data = try? JSONEncoder().encode(["tracks": tracks]),
+              let dict = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+            return .fail(id: id, message: "failed to encode track list")
+        }
+        return .ok(id: id, result: AnyCodable(dict))
+    }
+
+    private static func paramsSummary(_ params: AnyCodable) -> String? {
+        guard let dict = params.value as? [String: Any], !dict.isEmpty else {
+            return nil
+        }
+        let parts = dict.keys.sorted().compactMap { key -> String? in
+            guard let value = dict[key] else { return nil }
+            return "\(key)=\(value)"
+        }
+        return parts.isEmpty ? nil : parts.joined(separator: ", ")
     }
 
     private func writeResponse(fd: Int32, response: ControlResponse) {

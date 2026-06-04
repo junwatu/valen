@@ -78,7 +78,7 @@ let tools: [ToolDefinition] = [
     ),
     ToolDefinition(
         name: "open_file",
-        description: "Open a media file in the Valen player. The path must be accessible to the Valen GUI process (e.g. on the same machine).",
+        description: "Open a media file in the Valen player. Requires an absolute filesystem path (e.g. /Users/you/Movies/file.mkv).",
         inputSchema: AnyCodable([
             "type": "object",
             "properties": [
@@ -147,7 +147,64 @@ let tools: [ToolDefinition] = [
     ),
     ToolDefinition(
         name: "get_state",
-        description: "Read the current player state: paused, position, duration, volume, speed, and the file path if any.",
+        description: "Read the current player state including tracks, subtitle visibility, and active subtitle text.",
+        inputSchema: AnyCodable([
+            "type": "object",
+            "properties": [String: String](),
+            "additionalProperties": false
+        ])
+    ),
+    ToolDefinition(
+        name: "list_audio_tracks",
+        description: "List available audio tracks for the current file.",
+        inputSchema: AnyCodable([
+            "type": "object",
+            "properties": [String: String](),
+            "additionalProperties": false
+        ])
+    ),
+    ToolDefinition(
+        name: "list_subtitle_tracks",
+        description: "List available subtitle tracks for the current file.",
+        inputSchema: AnyCodable([
+            "type": "object",
+            "properties": [String: String](),
+            "additionalProperties": false
+        ])
+    ),
+    ToolDefinition(
+        name: "select_audio_track",
+        description: "Select an audio track by mpv track id.",
+        inputSchema: AnyCodable([
+            "type": "object",
+            "properties": [
+                "id": [
+                    "type": "integer",
+                    "description": "Audio track id from list_audio_tracks."
+                ]
+            ],
+            "required": ["id"],
+            "additionalProperties": false
+        ])
+    ),
+    ToolDefinition(
+        name: "select_subtitle_track",
+        description: "Select a subtitle track by mpv track id.",
+        inputSchema: AnyCodable([
+            "type": "object",
+            "properties": [
+                "id": [
+                    "type": "integer",
+                    "description": "Subtitle track id from list_subtitle_tracks."
+                ]
+            ],
+            "required": ["id"],
+            "additionalProperties": false
+        ])
+    ),
+    ToolDefinition(
+        name: "subtitles_off",
+        description: "Turn subtitles off for the current file.",
         inputSchema: AnyCodable([
             "type": "object",
             "properties": [String: String](),

@@ -209,14 +209,36 @@ final class PlayerModel: ObservableObject {
 
     func snapshot() -> ControlState {
         let speed = mpv.getDouble("speed") ?? 1.0
+        let sid = mpv.getString("sid")
+        let subtitlesVisible = currentFile != nil
+            && sid != "no"
+            && (mpv.getFlag("sub-visibility") ?? true)
+        let subtitleText = mpv.getString("sub-text")?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        let activeSubtitleText = subtitleText?.isEmpty == false ? subtitleText : nil
+
         return ControlState(
             currentFile: currentFile?.path,
             isPaused: isPaused,
             position: position,
             duration: duration,
             volume: volume,
-            speed: speed
+            speed: speed,
+            selectedAudioID: selectedAudioID,
+            selectedSubtitleID: selectedSubtitleID,
+            subtitlesVisible: subtitlesVisible,
+            activeSubtitleText: activeSubtitleText,
+            audioTracks: audioTracks.map(\.controlInfo),
+            subtitleTracks: subtitleTracks.map(\.controlInfo)
         )
+    }
+
+    func logControlAction(_ method: String, detail: String? = nil) {
+        if let detail, !detail.isEmpty {
+            log("[control] \(method) \(detail)")
+        } else {
+            log("[control] \(method)")
+        }
     }
 
     func selectAudioTrack(_ track: MediaTrack) {
@@ -500,6 +522,22 @@ final class PlayerModel: ObservableObject {
 enum MediaTrackKind {
     case audio
     case subtitle
+}
+
+extension MediaTrack {
+    var controlInfo: ControlTrackInfo {
+        ControlTrackInfo(
+            id: id,
+            kind: kind == .audio ? "audio" : "subtitle",
+            title: title,
+            language: language,
+            codec: codec,
+            isDefault: isDefault,
+            isForced: isForced,
+            isSelected: isSelected,
+            displayName: displayName
+        )
+    }
 }
 
 struct MediaTrack: Identifiable, Equatable {

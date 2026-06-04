@@ -2,7 +2,7 @@ import Foundation
 
 public enum ControlConstants {
     public static let socketFileName = "valen-control.sock"
-    public static let protocolVersion = 1
+    public static let protocolVersion = 2
 
     public static var socketURL: URL {
         URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(socketFileName)
@@ -18,6 +18,45 @@ public enum ControlMethod: String, Codable, CaseIterable, Sendable {
     case setVolume = "set_volume"
     case setSpeed = "set_speed"
     case getState = "get_state"
+    case listAudioTracks = "list_audio_tracks"
+    case listSubtitleTracks = "list_subtitle_tracks"
+    case selectAudioTrack = "select_audio_track"
+    case selectSubtitleTrack = "select_subtitle_track"
+    case subtitlesOff = "subtitles_off"
+}
+
+public struct ControlTrackInfo: Codable, Sendable, Equatable {
+    public let id: Int
+    public let kind: String
+    public let title: String?
+    public let language: String?
+    public let codec: String?
+    public let isDefault: Bool
+    public let isForced: Bool
+    public let isSelected: Bool
+    public let displayName: String
+
+    public init(
+        id: Int,
+        kind: String,
+        title: String?,
+        language: String?,
+        codec: String?,
+        isDefault: Bool,
+        isForced: Bool,
+        isSelected: Bool,
+        displayName: String
+    ) {
+        self.id = id
+        self.kind = kind
+        self.title = title
+        self.language = language
+        self.codec = codec
+        self.isDefault = isDefault
+        self.isForced = isForced
+        self.isSelected = isSelected
+        self.displayName = displayName
+    }
 }
 
 public struct ControlRequest: Codable, Sendable {
@@ -60,6 +99,12 @@ public struct ControlState: Codable, Sendable {
     public let duration: Double
     public let volume: Double
     public let speed: Double
+    public let selectedAudioID: Int?
+    public let selectedSubtitleID: Int?
+    public let subtitlesVisible: Bool
+    public let activeSubtitleText: String?
+    public let audioTracks: [ControlTrackInfo]
+    public let subtitleTracks: [ControlTrackInfo]
 
     public init(
         protocolVersion: Int = ControlConstants.protocolVersion,
@@ -68,7 +113,13 @@ public struct ControlState: Codable, Sendable {
         position: Double,
         duration: Double,
         volume: Double,
-        speed: Double
+        speed: Double,
+        selectedAudioID: Int? = nil,
+        selectedSubtitleID: Int? = nil,
+        subtitlesVisible: Bool = false,
+        activeSubtitleText: String? = nil,
+        audioTracks: [ControlTrackInfo] = [],
+        subtitleTracks: [ControlTrackInfo] = []
     ) {
         self.protocolVersion = protocolVersion
         self.currentFile = currentFile
@@ -77,6 +128,20 @@ public struct ControlState: Codable, Sendable {
         self.duration = duration
         self.volume = volume
         self.speed = speed
+        self.selectedAudioID = selectedAudioID
+        self.selectedSubtitleID = selectedSubtitleID
+        self.subtitlesVisible = subtitlesVisible
+        self.activeSubtitleText = activeSubtitleText
+        self.audioTracks = audioTracks
+        self.subtitleTracks = subtitleTracks
+    }
+
+    public var jsonDictionary: [String: Any] {
+        guard let data = try? JSONEncoder().encode(self),
+              let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+            return [:]
+        }
+        return object
     }
 }
 
@@ -154,6 +219,17 @@ public struct AnyCodable: Codable, @unchecked Sendable {
         guard let dict = value as? [String: Any], let raw = dict[key] else { return nil }
         if let b = raw as? Bool { return b }
         if let codable = raw as? AnyCodable, let b = codable.value as? Bool { return b }
+        return nil
+    }
+
+    public func int(for key: String) -> Int? {
+        guard let dict = value as? [String: Any], let raw = dict[key] else { return nil }
+        if let i = raw as? Int { return i }
+        if let d = raw as? Double { return Int(d) }
+        if let codable = raw as? AnyCodable {
+            if let i = codable.value as? Int { return i }
+            if let d = codable.value as? Double { return Int(d) }
+        }
         return nil
     }
 }

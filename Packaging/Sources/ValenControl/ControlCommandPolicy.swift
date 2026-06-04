@@ -13,6 +13,24 @@ public enum ControlCommandPolicy {
         return path
     }
 
+    /// Requires a normalized absolute filesystem path (macOS: must start with `/`).
+    public static func validAbsoluteOpenPath(_ path: String?) -> String? {
+        guard let path = validOpenPath(path) else {
+            return nil
+        }
+        guard path.hasPrefix("/") else {
+            return nil
+        }
+        return (path as NSString).standardizingPath
+    }
+
+    public static func validTrackID(_ value: Int?) -> Int? {
+        guard let value, value >= 0 else {
+            return nil
+        }
+        return value
+    }
+
     public static func clampVolume(_ value: Double) -> Double {
         max(minimumVolume, min(value, maximumVolume))
     }

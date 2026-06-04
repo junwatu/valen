@@ -61,4 +61,42 @@ final class ControlServerTests: XCTestCase {
         XCTAssertEqual(response.id, 0)
         XCTAssertEqual(response.error, "request too large")
     }
+
+    func testOpenFileRejectsRelativePath() throws {
+        let request = ControlRequest(
+            id: 3,
+            method: "open_file",
+            params: ["path": AnyCodable("movie.mkv")]
+        )
+        let response = try XCTUnwrap(sendOnBackground(request))
+        XCTAssertEqual(response.id, 3)
+        XCTAssertNotNil(response.error)
+        XCTAssertTrue(response.error?.contains("absolute") == true)
+    }
+
+    func testGetStateReturnsRichFields() throws {
+        let request = ControlRequest(id: 4, method: "get_state", params: [:])
+        let response = try XCTUnwrap(sendOnBackground(request))
+        XCTAssertNil(response.error)
+
+        let dict = try XCTUnwrap(response.result?.value as? [String: Any])
+        XCTAssertEqual(dict["protocolVersion"] as? Int, 2)
+        XCTAssertNotNil(dict["audioTracks"])
+        XCTAssertNotNil(dict["subtitleTracks"])
+        XCTAssertNotNil(dict["subtitlesVisible"])
+    }
+
+    func testListAudioTracksReturnsTracksKey() throws {
+        let request = ControlRequest(id: 5, method: "list_audio_tracks", params: [:])
+        let response = try XCTUnwrap(sendOnBackground(request))
+        XCTAssertNil(response.error)
+        let dict = try XCTUnwrap(response.result?.value as? [String: Any])
+        XCTAssertTrue(dict["tracks"] is [Any])
+    }
+
+    func testControlActionIsLogged() throws {
+        _ = try sendOnBackground(ControlRequest(id: 6, method: "pause", params: [:]))
+        let lines = player.debugLines.joined(separator: "\n")
+        XCTAssertTrue(lines.contains("[control] pause"))
+    }
 }
