@@ -31,12 +31,14 @@
 - Responsive compact mode for small windows (single-row layout, 480×280 minimum)
 - Overlay auto-hides during playback when the pointer is idle
 - Cursor hides when playback controls hide
+- Display sleep is prevented while media is actively playing
 - Fullscreen support through shortcut, double-click, or macOS window controls
 - Audio track selector
 - Subtitle track selector
 - Native Settings window
 - Per-video saved state:
   - resume position
+  - resume state is flushed when Valen quits
   - selected audio track
   - selected subtitle track
   - subtitles off/on state
@@ -112,7 +114,7 @@ Scripts/build-app.sh
 This creates:
 
 - `dist/Valen.app`
-- `dist/Valen-0.2.0-macos-arm64.zip`
+- `dist/Valen-0.2.1-macos-arm64.zip`
 
 The generated app bundle includes `libmpv` and Homebrew runtime dylib dependencies under `Contents/Frameworks`.
 

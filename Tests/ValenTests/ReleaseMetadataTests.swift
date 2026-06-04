@@ -2,18 +2,18 @@ import Foundation
 import XCTest
 
 final class ReleaseMetadataTests: XCTestCase {
-    private let expectedVersion = "0.2.0"
-    private let expectedBuild = "3"
+    private let expectedVersion = "0.2.1"
+    private let expectedBuild = "4"
 
     func testVersionMetadataIsAlignedAcrossReleaseFiles() throws {
         let files = try releaseFiles()
 
-        XCTAssertContains(files.buildScript, #"VERSION="${VERSION:-0.2.0}""#)
-        XCTAssertContains(files.notarizeScript, "Valen-0.2.0-macos-arm64.zip")
-        XCTAssertContains(files.readme, "dist/Valen-0.2.0-macos-arm64.zip")
-        XCTAssertContains(files.releaseNotes, "# Valen v0.2.0")
-        XCTAssertContains(files.releaseNotes, "dist/Valen-0.2.0-macos-arm64.zip")
-        XCTAssertContains(files.mcpServer, #""version": "0.2.0""#)
+        XCTAssertContains(files.buildScript, #"VERSION="${VERSION:-0.2.1}""#)
+        XCTAssertContains(files.notarizeScript, "Valen-0.2.1-macos-arm64.zip")
+        XCTAssertContains(files.readme, "dist/Valen-0.2.1-macos-arm64.zip")
+        XCTAssertContains(files.releaseNotes, "# Valen v0.2.1")
+        XCTAssertContains(files.releaseNotes, "dist/Valen-0.2.1-macos-arm64.zip")
+        XCTAssertContains(files.mcpServer, #""version": "0.2.1""#)
 
         let marketingVersionMatches = files.xcodeProject.matches(of: /MARKETING_VERSION = ([^;]+);/)
         XCTAssertEqual(marketingVersionMatches.map { String($0.1) }, [expectedVersion, expectedVersion])
@@ -28,10 +28,10 @@ final class ReleaseMetadataTests: XCTestCase {
         let item = try XCTUnwrap(document.rootElement()?.elements(forName: "channel").first?.elements(forName: "item").first)
         let enclosure = try XCTUnwrap(item.elements(forName: "enclosure").first)
 
-        XCTAssertEqual(item.elements(forName: "title").first?.stringValue, "Version 0.2.0")
+        XCTAssertEqual(item.elements(forName: "title").first?.stringValue, "Version 0.2.1")
         XCTAssertEqual(item.elements(forName: "sparkle:version").first?.stringValue, expectedBuild)
         XCTAssertEqual(item.elements(forName: "sparkle:shortVersionString").first?.stringValue, expectedVersion)
-        XCTAssertEqual(enclosure.attribute(forName: "url")?.stringValue, "https://example.com/valen/Valen-0.2.0-macos-arm64.zip")
+        XCTAssertEqual(enclosure.attribute(forName: "url")?.stringValue, "https://example.com/valen/Valen-0.2.1-macos-arm64.zip")
     }
 
     func testBuildScriptDeclaresExpectedBundleDocumentTypes() throws {
@@ -55,7 +55,7 @@ final class ReleaseMetadataTests: XCTestCase {
             buildScript: try read("Scripts/build-app.sh", from: root),
             notarizeScript: try read("Scripts/notarize-app.sh", from: root),
             readme: try read("README.md", from: root),
-            releaseNotes: try read("RELEASE_NOTES_v0.2.0.md", from: root),
+            releaseNotes: try read("RELEASE_NOTES_v0.2.1.md", from: root),
             mcpServer: try read("Packaging/Sources/valen-mcp/main.swift", from: root),
             xcodeProject: try read("Valen.xcodeproj/project.pbxproj", from: root),
             appcast: try read("Packaging/appcast.example.xml", from: root)

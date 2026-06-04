@@ -1,5 +1,6 @@
 import AppKit
 import Combine
+import IOKit.pwr_mgt
 import SwiftUI
 import UniformTypeIdentifiers
 #if SWIFT_PACKAGE
@@ -30,6 +31,8 @@ final class PlayerModel: ObservableObject {
     private var pendingRestoreState: SavedPlaybackState?
     private var didApplyRestoreState = false
     private weak var hostView: MPVHostView?
+    private var playbackActivity: NSObjectProtocol?
+    private var displaySleepAssertionID = IOPMAssertionID(0)
 
     var hasError: Binding<Bool> {
         Binding(
@@ -122,6 +125,7 @@ final class PlayerModel: ObservableObject {
             }
             try mpv.command(["loadfile", url.path])
             try mpv.setFlag("pause", value: false)
+            updatePlaybackActivity()
         } catch {
             errorMessage = error.localizedDescription
             log("Load failed: \(error.localizedDescription)")
@@ -156,6 +160,7 @@ final class PlayerModel: ObservableObject {
         do {
             isPaused = paused
             try mpv.setFlag("pause", value: paused)
+            updatePlaybackActivity()
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -244,6 +249,11 @@ final class PlayerModel: ObservableObject {
         }
     }
 
+    func prepareForTermination() {
+        savePlaybackState()
+        endPlaybackActivity()
+    }
+
     private func startPolling() {
         timer = Timer.scheduledTimer(withTimeInterval: 0.25, repeats: true) { [weak self] _ in
             Task { @MainActor in
@@ -295,12 +305,14 @@ final class PlayerModel: ObservableObject {
             isPaused = true
             position = 0
             duration = 0
+            updatePlaybackActivity()
             return
         }
 
         position = mpv.getDouble("time-pos") ?? position
         duration = mpv.getDouble("duration") ?? duration
         isPaused = mpv.getFlag("pause") ?? isPaused
+        updatePlaybackActivity()
         refreshTracks()
         applyPendingRestoreIfReady()
 
@@ -403,6 +415,55 @@ final class PlayerModel: ObservableObject {
             updatedAt: Date()
         )
         playbackStateStore.save(state, for: currentFile)
+    }
+
+    private func updatePlaybackActivity() {
+        let shouldPreventIdleDisplay = currentFile != nil && !isPaused
+        if shouldPreventIdleDisplay {
+            beginPlaybackActivity()
+        } else {
+            endPlaybackActivity()
+        }
+    }
+
+    private func beginPlaybackActivity() {
+        guard playbackActivity == nil else { return }
+
+        playbackActivity = ProcessInfo.processInfo.beginActivity(
+            options: [
+                .userInitiated,
+                .idleSystemSleepDisabled,
+                .idleDisplaySleepDisabled
+            ],
+            reason: "Valen is playing media"
+        )
+
+        if displaySleepAssertionID == 0 {
+            let result = IOPMAssertionCreateWithName(
+                kIOPMAssertionTypeNoDisplaySleep as CFString,
+                IOPMAssertionLevel(kIOPMAssertionLevelOn),
+                "Valen is playing media" as CFString,
+                &displaySleepAssertionID
+            )
+            if result != kIOReturnSuccess {
+                displaySleepAssertionID = 0
+                log("Could not create display sleep assertion: \(result).")
+            }
+        }
+
+        log("Preventing display sleep while media is playing.")
+    }
+
+    private func endPlaybackActivity() {
+        if let playbackActivity {
+            ProcessInfo.processInfo.endActivity(playbackActivity)
+            self.playbackActivity = nil
+        }
+
+        if displaySleepAssertionID != 0 {
+            IOPMAssertionRelease(displaySleepAssertionID)
+            displaySleepAssertionID = 0
+        }
     }
 
     private func log(_ message: String) {

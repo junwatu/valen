@@ -1,9 +1,11 @@
-# Valen v0.2.0
+# Valen v0.2.1
 
-Valen v0.2.0 is the current public-preview line for the native macOS SwiftUI player powered by libmpv.
+Valen v0.2.1 is the current public-preview line for the native macOS SwiftUI player powered by libmpv.
 
 ## Highlights
 
+- Prevents display sleep while media is actively playing.
+- Flushes resume state when Valen quits so reopening the same file resumes more reliably.
 - Adds the bundled `valen-mcp` server for AI-agent control through MCP.
 - Keeps QuickTime-style translucent overlay controls compact and centered.
 - Supports audio and subtitle track popovers that keep the overlay visible while selecting.
@@ -16,7 +18,7 @@ Valen v0.2.0 is the current public-preview line for the native macOS SwiftUI pla
 The default distributable artifact is:
 
 ```text
-dist/Valen-0.2.0-macos-arm64.zip
+dist/Valen-0.2.1-macos-arm64.zip
 ```
 
 ## Known Limitations

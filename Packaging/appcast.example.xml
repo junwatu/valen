@@ -5,12 +5,12 @@
     <link>https://example.com/valen/appcast.xml</link>
     <description>Valen release feed</description>
     <item>
-      <title>Version 0.2.0</title>
-      <sparkle:version>3</sparkle:version>
-      <sparkle:shortVersionString>0.2.0</sparkle:shortVersionString>
-      <pubDate>Tue, 02 Jun 2026 00:00:00 +0700</pubDate>
+      <title>Version 0.2.1</title>
+      <sparkle:version>4</sparkle:version>
+      <sparkle:shortVersionString>0.2.1</sparkle:shortVersionString>
+      <pubDate>Thu, 04 Jun 2026 00:00:00 +0700</pubDate>
       <enclosure
-        url="https://example.com/valen/Valen-0.2.0-macos-arm64.zip"
+        url="https://example.com/valen/Valen-0.2.1-macos-arm64.zip"
         sparkle:edSignature="REPLACE_WITH_SPARKLE_SIGNATURE"
         length="REPLACE_WITH_ZIP_SIZE"
         type="application/octet-stream" />

@@ -90,6 +90,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationWillTerminate(_ notification: Notification) {
+        player.prepareForTermination()
         controlServer?.stop()
         controlServer = nil
     }
