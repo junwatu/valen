@@ -161,16 +161,29 @@ The `valen-mcp` executable reads JSON-RPC over stdio and forwards calls to the r
 
 ### Tools
 
-| Tool             | Args                      | Description                                   |
-| ---------------- | ------------------------- | --------------------------------------------- |
-| `play`           | -                         | Resume playback                               |
-| `pause`          | -                         | Pause playback                                |
-| `toggle_play_pause` | -                      | Toggle play/pause                             |
-| `open_file`      | `path` (string)           | Open a local file by absolute path            |
-| `seek`           | `seconds` (number)        | Seek relative to current position             |
-| `set_volume`     | `value` (0-200)           | Set volume; 100 = unity, 200 = max            |
-| `set_speed`      | `value` (>0)              | Set playback speed multiplier                 |
-| `get_state`      | -                         | Return current `isPaused`, `volume`, `speed`, `position`, `duration`, `currentFile` |
+| Tool | Args | Description |
+| --- | --- | --- |
+| `play` | - | Resume playback |
+| `pause` | - | Pause playback |
+| `toggle_play_pause` | - | Toggle play/pause |
+| `open_file` | `path` (string, absolute) | Open a local file; path must start with `/` |
+| `seek` | `seconds` (number), `relative` (boolean, optional) | Seek to an absolute time, or by a signed offset when `relative` is true |
+| `set_volume` | `value` (0–150) | Set volume; 100 is unity gain |
+| `set_speed` | `speed` (0.25–4.0) | Set playback speed multiplier |
+| `get_state` | - | Read full player state (see below) |
+| `list_audio_tracks` | - | List audio tracks for the current file |
+| `list_subtitle_tracks` | - | List subtitle tracks for the current file |
+| `select_audio_track` | `id` (integer) | Select an audio track by mpv track id |
+| `select_subtitle_track` | `id` (integer) | Select a subtitle track by mpv track id |
+| `subtitles_off` | - | Turn subtitles off |
+
+`list_audio_tracks` and `list_subtitle_tracks` return `{ "tracks": [...] }`. Each track includes `id`, `kind`, `title`, `language`, `codec`, `isDefault`, `isForced`, `isSelected`, and `displayName`.
+
+`get_state` returns control protocol version 2 fields:
+
+- `protocolVersion`, `currentFile`, `isPaused`, `position`, `duration`, `volume`, `speed`
+- `selectedAudioID`, `selectedSubtitleID`, `subtitlesVisible`, `activeSubtitleText`
+- `audioTracks`, `subtitleTracks` (same shape as the list tools)
 
 ### Build
 
@@ -207,7 +220,7 @@ printf '%s\n' \
 }
 ```
 
-Launch Claude Desktop while the Valen app is running and the eight tools appear in the tools menu.
+Launch Claude Desktop while the Valen app is running and the thirteen tools appear in the tools menu.
 
 
 ## Current Limitations
