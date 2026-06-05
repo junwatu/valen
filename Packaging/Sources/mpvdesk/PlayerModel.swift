@@ -22,6 +22,7 @@ final class PlayerModel: ObservableObject {
     @Published var isDebugVisible = false
     @Published var isFullscreen = false
     @Published var errorMessage: String?
+    @Published private(set) var loadedExternalSubtitle: URL?
 
     private let mpv = MPVClient()
     private let playbackStateStore = PlaybackStateStore()
@@ -29,6 +30,7 @@ final class PlayerModel: ObservableObject {
     private var keyMonitor: Any?
     private var pollCount = 0
     private var pendingRestoreState: SavedPlaybackState?
+    private var pendingSiblingSubtitle: URL?
     private var didApplyRestoreState = false
     private weak var hostView: MPVHostView?
     private var playbackActivity: NSObjectProtocol?
@@ -86,6 +88,24 @@ final class PlayerModel: ObservableObject {
         }
     }
 
+    func openSubtitleFilePanel() {
+        guard currentFile != nil else {
+            errorMessage = "Open a video before loading a subtitle file."
+            return
+        }
+
+        let panel = NSOpenPanel()
+        panel.allowsMultipleSelection = false
+        panel.canChooseFiles = true
+        panel.canChooseDirectories = false
+        panel.allowedContentTypes = SupportedSubtitleTypes.contentTypes
+        panel.prompt = "Load"
+
+        if panel.runModal() == .OK, let url = panel.url {
+            loadExternalSubtitle(url)
+        }
+    }
+
     func handleDrop(_ providers: [NSItemProvider]) -> Bool {
         guard let provider = providers.first(where: { $0.hasItemConformingToTypeIdentifier(UTType.fileURL.identifier) }) else {
             return false
@@ -101,7 +121,12 @@ final class PlayerModel: ObservableObject {
 
             guard let url else { return }
             Task { @MainActor in
-                self?.load(url)
+                guard let self else { return }
+                if self.currentFile != nil, SupportedSubtitleTypes.supports(url: url) {
+                    self.loadExternalSubtitle(url)
+                } else if SupportedMediaTypes.supports(fileExtension: url.pathExtension) {
+                    self.load(url)
+                }
             }
         }
 
@@ -117,7 +142,18 @@ final class PlayerModel: ObservableObject {
             subtitleTracks = []
             selectedAudioID = nil
             selectedSubtitleID = nil
+            loadedExternalSubtitle = nil
             pendingRestoreState = AppPreferences.resumePlayback ? playbackStateStore.state(for: url) : nil
+            pendingSiblingSubtitle = nil
+            let shouldTrySibling = AppPreferences.autoLoadMatchingSubtitle && {
+                guard let state = pendingRestoreState else { return true }
+                return state.externalSubtitlePath == nil
+                    && state.subtitleTrackID == nil
+                    && !state.subtitlesOff
+            }()
+            if shouldTrySibling {
+                pendingSiblingSubtitle = SupportedSubtitleTypes.matchingSubtitleURL(for: url)
+            }
             didApplyRestoreState = false
             log("Loading file: \(url.path)")
             if let pendingRestoreState {
@@ -271,6 +307,26 @@ final class PlayerModel: ObservableObject {
         }
     }
 
+    func loadExternalSubtitle(_ url: URL) {
+        guard currentFile != nil else {
+            errorMessage = "Open a video before loading a subtitle file."
+            return
+        }
+
+        guard SupportedSubtitleTypes.supports(url: url) else {
+            errorMessage = "Unsupported subtitle format: \(url.pathExtension)"
+            return
+        }
+
+        do {
+            try attachExternalSubtitle(url)
+            log("Loaded external subtitle: \(url.lastPathComponent)")
+        } catch {
+            errorMessage = error.localizedDescription
+            log("External subtitle load failed: \(error.localizedDescription)")
+        }
+    }
+
     func prepareForTermination() {
         savePlaybackState()
         endPlaybackActivity()
@@ -387,13 +443,22 @@ final class PlayerModel: ObservableObject {
                 selectedAudioID = audioTrackID
             }
 
-            if state.subtitlesOff {
+            if let externalPath = state.externalSubtitlePath,
+               FileManager.default.fileExists(atPath: externalPath) {
+                try attachExternalSubtitle(URL(fileURLWithPath: externalPath))
+            } else if let sibling = pendingSiblingSubtitle {
+                pendingSiblingSubtitle = nil
+                try attachExternalSubtitle(sibling)
+                log("Auto-loaded matching subtitle: \(sibling.lastPathComponent)")
+            } else if state.subtitlesOff {
                 try mpv.setString("sid", value: "no")
                 selectedSubtitleID = nil
             } else if let subtitleTrackID = state.subtitleTrackID {
                 try mpv.setInt("sid", value: subtitleTrackID)
                 try mpv.setFlag("sub-visibility", value: true)
                 selectedSubtitleID = subtitleTrackID
+            } else {
+                pendingSiblingSubtitle = nil
             }
 
             if PlaybackStatePolicy.shouldRestorePosition(state.position, duration: duration) {
@@ -433,6 +498,7 @@ final class PlayerModel: ObservableObject {
             audioTrackID: shouldRememberTracks ? selectedAudioID : nil,
             subtitleTrackID: shouldRememberTracks ? selectedSubtitleID : nil,
             subtitlesOff: shouldRememberTracks && sid == "no",
+            externalSubtitlePath: shouldRememberTracks ? loadedExternalSubtitle?.path : nil,
             volume: volume,
             updatedAt: Date()
         )
@@ -486,6 +552,16 @@ final class PlayerModel: ObservableObject {
             IOPMAssertionRelease(displaySleepAssertionID)
             displaySleepAssertionID = 0
         }
+    }
+
+    private func attachExternalSubtitle(_ url: URL) throws {
+        let standardized = url.standardizedFileURL
+        try mpv.command(["sub-add", standardized.path, "select"])
+        try mpv.setFlag("sub-visibility", value: true)
+        loadedExternalSubtitle = standardized
+        refreshTracks()
+        selectedSubtitleID = subtitleTracks.first(where: \.isSelected)?.id
+        savePlaybackState()
     }
 
     private func log(_ message: String) {
@@ -583,12 +659,17 @@ struct SavedPlaybackState: Codable {
     let audioTrackID: Int?
     let subtitleTrackID: Int?
     let subtitlesOff: Bool
+    let externalSubtitlePath: String?
     let volume: Double
     let updatedAt: Date
 
     var subtitleDescription: String {
         if subtitlesOff {
             return "off"
+        }
+
+        if let externalSubtitlePath {
+            return URL(fileURLWithPath: externalSubtitlePath).lastPathComponent
         }
 
         return subtitleTrackID.map(String.init) ?? "auto"

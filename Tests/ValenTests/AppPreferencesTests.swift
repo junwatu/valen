@@ -9,6 +9,7 @@ final class AppPreferencesTests: XCTestCase {
             AppPreferenceKeys.rememberTrackSelection,
             AppPreferenceKeys.autoHideControls,
             AppPreferenceKeys.autoHideDelay,
+            AppPreferenceKeys.autoLoadMatchingSubtitle,
             AppPreferenceKeys.keyboardSeekSeconds,
             AppPreferenceKeys.defaultVolume
         ].forEach(UserDefaults.standard.removeObject)

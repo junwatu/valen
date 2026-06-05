@@ -7,12 +7,14 @@ struct SettingsView: View {
     @AppStorage(AppPreferenceKeys.autoHideDelay) private var autoHideDelay = 2.0
     @AppStorage(AppPreferenceKeys.keyboardSeekSeconds) private var keyboardSeekSeconds = 10.0
     @AppStorage(AppPreferenceKeys.defaultVolume) private var defaultVolume = 80.0
+    @AppStorage(AppPreferenceKeys.autoLoadMatchingSubtitle) private var autoLoadMatchingSubtitle = true
 
     var body: some View {
         Form {
             Section("Playback") {
                 Toggle("Resume videos where I left off", isOn: $resumePlayback)
                 Toggle("Remember audio and subtitle track per video", isOn: $rememberTrackSelection)
+                Toggle("Auto-load matching subtitle in the same folder", isOn: $autoLoadMatchingSubtitle)
 
                 Picker("Keyboard seek", selection: $keyboardSeekSeconds) {
                     ForEach(AppPreferenceOptions.keyboardSeekSeconds, id: \.self) { seconds in

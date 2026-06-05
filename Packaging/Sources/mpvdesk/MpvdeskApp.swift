@@ -27,6 +27,14 @@ struct ValenApp: App {
                 .keyboardShortcut("o", modifiers: [.command])
             }
 
+            CommandMenu("Subtitles") {
+                Button("Load External Subtitle...") {
+                    appDelegate.player.openSubtitleFilePanel()
+                }
+                .keyboardShortcut("o", modifiers: [.command, .shift])
+                .disabled(appDelegate.player.currentFile == nil)
+            }
+
             CommandMenu("Playback") {
                 Button(appDelegate.player.isPaused ? "Play" : "Pause") {
                     appDelegate.player.togglePlayPause()

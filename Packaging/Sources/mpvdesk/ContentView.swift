@@ -704,6 +704,25 @@ private struct SubtitleTrackPopover: View {
                     activePopover = nil
                 }
             }
+
+            Divider()
+                .padding(.vertical, 4)
+
+            if let external = player.loadedExternalSubtitle {
+                Text(external.lastPathComponent)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .padding(.horizontal, 4)
+            }
+
+            TrackOptionButton(
+                title: "Load External Subtitle...",
+                isSelected: false
+            ) {
+                player.openSubtitleFilePanel()
+                activePopover = nil
+            }
         }
     }
 }

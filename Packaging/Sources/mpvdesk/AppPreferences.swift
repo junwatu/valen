@@ -7,6 +7,7 @@ enum AppPreferenceKeys {
     static let autoHideDelay = "dev.valen.preferences.autoHideDelay"
     static let keyboardSeekSeconds = "dev.valen.preferences.keyboardSeekSeconds"
     static let defaultVolume = "dev.valen.preferences.defaultVolume"
+    static let autoLoadMatchingSubtitle = "dev.valen.preferences.autoLoadMatchingSubtitle"
 }
 
 enum AppPreferences {
@@ -17,7 +18,8 @@ enum AppPreferences {
             AppPreferenceKeys.autoHideControls: true,
             AppPreferenceKeys.autoHideDelay: 2.0,
             AppPreferenceKeys.keyboardSeekSeconds: 10.0,
-            AppPreferenceKeys.defaultVolume: 80.0
+            AppPreferenceKeys.defaultVolume: 80.0,
+            AppPreferenceKeys.autoLoadMatchingSubtitle: true
         ])
     }
 
@@ -43,6 +45,10 @@ enum AppPreferences {
 
     static var defaultVolume: Double {
         UserDefaults.standard.object(forKey: AppPreferenceKeys.defaultVolume) as? Double ?? 80.0
+    }
+
+    static var autoLoadMatchingSubtitle: Bool {
+        UserDefaults.standard.bool(forKey: AppPreferenceKeys.autoLoadMatchingSubtitle)
     }
 }
 

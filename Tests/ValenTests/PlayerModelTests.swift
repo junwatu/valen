@@ -43,6 +43,7 @@ final class PlayerModelTests: XCTestCase {
                 audioTrackID: nil,
                 subtitleTrackID: nil,
                 subtitlesOff: true,
+                externalSubtitlePath: nil,
                 volume: 80,
                 updatedAt: Date()
             ).subtitleDescription,
@@ -56,6 +57,7 @@ final class PlayerModelTests: XCTestCase {
                 audioTrackID: nil,
                 subtitleTrackID: 3,
                 subtitlesOff: false,
+                externalSubtitlePath: nil,
                 volume: 80,
                 updatedAt: Date()
             ).subtitleDescription,
@@ -69,10 +71,25 @@ final class PlayerModelTests: XCTestCase {
                 audioTrackID: nil,
                 subtitleTrackID: nil,
                 subtitlesOff: false,
+                externalSubtitlePath: nil,
                 volume: 80,
                 updatedAt: Date()
             ).subtitleDescription,
             "auto"
+        )
+
+        XCTAssertEqual(
+            SavedPlaybackState(
+                position: 10,
+                duration: 100,
+                audioTrackID: nil,
+                subtitleTrackID: nil,
+                subtitlesOff: false,
+                externalSubtitlePath: "/Users/example/movie.srt",
+                volume: 80,
+                updatedAt: Date()
+            ).subtitleDescription,
+            "movie.srt"
         )
     }
 
@@ -88,6 +105,7 @@ final class PlayerModelTests: XCTestCase {
             audioTrackID: 2,
             subtitleTrackID: 4,
             subtitlesOff: false,
+            externalSubtitlePath: "/tmp/valen-test.srt",
             volume: 63,
             updatedAt: Date(timeIntervalSince1970: 1_700_000_000)
         )
@@ -100,6 +118,7 @@ final class PlayerModelTests: XCTestCase {
         XCTAssertEqual(restored.audioTrackID, 2)
         XCTAssertEqual(restored.subtitleTrackID, 4)
         XCTAssertFalse(restored.subtitlesOff)
+        XCTAssertEqual(restored.externalSubtitlePath, "/tmp/valen-test.srt")
         XCTAssertEqual(restored.volume, 63)
     }
 }

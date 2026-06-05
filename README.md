@@ -35,6 +35,7 @@
 - Fullscreen support through shortcut, double-click, or macOS window controls
 - Audio track selector
 - Subtitle track selector
+- External subtitle files (`.srt`, `.ass`, `.ssa`, `.vtt`, and more) via menu, drag-and-drop, or auto-load when `Movie.srt` sits beside `Movie.mkv`
 - Native Settings window
 - Per-video saved state:
   - resume position

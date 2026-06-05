@@ -19,6 +19,7 @@
 		A0000000000000000000000E /* AppInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000003A /* AppInfo.swift */; };
 		A0000000000000000000000F /* ControlServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000003B /* ControlServer.swift */; };
 		A00000000000000000000011 /* SupportedMediaTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000003C /* SupportedMediaTypes.swift */; };
+		A00000000000000000000016 /* SupportedSubtitleTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000049 /* SupportedSubtitleTypes.swift */; };
 		A00000000000000000000012 /* PlaybackStatePolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000003D /* PlaybackStatePolicy.swift */; };
 		A00000000000000000000013 /* OverlayVisibilityPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000003E /* OverlayVisibilityPolicy.swift */; };
 		A00000000000000000000014 /* ControlProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000003F /* ControlProtocol.swift */; };
@@ -43,6 +44,7 @@
 		A0000000000000000000003A /* AppInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppInfo.swift; sourceTree = "<group>"; };
 		A0000000000000000000003B /* ControlServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControlServer.swift; sourceTree = "<group>"; };
 		A0000000000000000000003C /* SupportedMediaTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupportedMediaTypes.swift; sourceTree = "<group>"; };
+		A00000000000000000000049 /* SupportedSubtitleTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupportedSubtitleTypes.swift; sourceTree = "<group>"; };
 		A0000000000000000000003D /* PlaybackStatePolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackStatePolicy.swift; sourceTree = "<group>"; };
 		A0000000000000000000003E /* OverlayVisibilityPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayVisibilityPolicy.swift; sourceTree = "<group>"; };
 		A0000000000000000000003F /* ControlProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControlProtocol.swift; sourceTree = "<group>"; };
@@ -131,6 +133,7 @@
 				A00000000000000000000026 /* SettingsView.swift */,
 				A00000000000000000000027 /* SparkleUpdater.swift */,
 				A0000000000000000000003C /* SupportedMediaTypes.swift */,
+				A00000000000000000000049 /* SupportedSubtitleTypes.swift */,
 				A00000000000000000000028 /* VideoSurfaceView.swift */,
 				A0000000000000000000002F /* LayoutMetrics.swift */,
 			);
@@ -235,6 +238,7 @@
 				A0000000000000000000000E /* AppInfo.swift in Sources */,
 				A0000000000000000000000F /* ControlServer.swift in Sources */,
 				A00000000000000000000011 /* SupportedMediaTypes.swift in Sources */,
+				A00000000000000000000016 /* SupportedSubtitleTypes.swift in Sources */,
 				A00000000000000000000012 /* PlaybackStatePolicy.swift in Sources */,
 				A00000000000000000000013 /* OverlayVisibilityPolicy.swift in Sources */,
 				A00000000000000000000014 /* ControlProtocol.swift in Sources */,
