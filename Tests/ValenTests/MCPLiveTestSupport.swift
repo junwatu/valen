@@ -12,7 +12,14 @@ enum MCPLiveTestSupport {
     """
 
     static var isValenRunning: Bool {
-        ControlClient().isServerRunning()
+        let client = ControlClient()
+        guard client.isServerRunning() else { return false }
+        do {
+            _ = try client.send(ControlRequest(id: 0, method: "get_state", params: [:]))
+            return true
+        } catch {
+            return false
+        }
     }
 
     static func requireValenRunning() throws {
