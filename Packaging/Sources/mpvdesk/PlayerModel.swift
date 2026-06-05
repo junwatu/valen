@@ -424,55 +424,74 @@ final class PlayerModel: ObservableObject {
     }
 
     private func applyPendingRestoreIfReady() {
-        guard !didApplyRestoreState, let state = pendingRestoreState, currentFile != nil else {
+        guard !didApplyRestoreState, currentFile != nil, duration > 0 else {
             return
         }
 
-        guard duration > 0 else {
+        if let state = pendingRestoreState {
+            do {
+                if abs(volume - state.volume) > 0.5 {
+                    volume = state.volume
+                    try mpv.setDouble("volume", value: state.volume)
+                }
+
+                if let audioTrackID = state.audioTrackID {
+                    try mpv.setInt("aid", value: audioTrackID)
+                    selectedAudioID = audioTrackID
+                }
+
+                if let externalPath = state.externalSubtitlePath,
+                   FileManager.default.fileExists(atPath: externalPath) {
+                    try attachExternalSubtitle(URL(fileURLWithPath: externalPath))
+                } else if let sibling = pendingSiblingSubtitle {
+                    pendingSiblingSubtitle = nil
+                    try attachExternalSubtitle(sibling)
+                    log("Auto-loaded matching subtitle: \(sibling.lastPathComponent)")
+                } else if state.subtitlesOff {
+                    try mpv.setString("sid", value: "no")
+                    selectedSubtitleID = nil
+                    pendingSiblingSubtitle = nil
+                } else if let subtitleTrackID = state.subtitleTrackID {
+                    try mpv.setInt("sid", value: subtitleTrackID)
+                    try mpv.setFlag("sub-visibility", value: true)
+                    selectedSubtitleID = subtitleTrackID
+                    pendingSiblingSubtitle = nil
+                } else {
+                    pendingSiblingSubtitle = nil
+                }
+
+                if PlaybackStatePolicy.shouldRestorePosition(state.position, duration: duration) {
+                    position = state.position
+                    try mpv.command(["seek", String(state.position), "absolute"])
+                }
+
+                didApplyRestoreState = true
+                pendingRestoreState = nil
+                log("Restored playback state.")
+            } catch {
+                didApplyRestoreState = true
+                pendingRestoreState = nil
+                log("Restore failed: \(error.localizedDescription)")
+            }
             return
         }
+
+        applyPendingSiblingSubtitleIfReady()
+        didApplyRestoreState = true
+    }
+
+    private func applyPendingSiblingSubtitleIfReady() {
+        guard let sibling = pendingSiblingSubtitle else {
+            return
+        }
+
+        pendingSiblingSubtitle = nil
 
         do {
-            if abs(volume - state.volume) > 0.5 {
-                volume = state.volume
-                try mpv.setDouble("volume", value: state.volume)
-            }
-
-            if let audioTrackID = state.audioTrackID {
-                try mpv.setInt("aid", value: audioTrackID)
-                selectedAudioID = audioTrackID
-            }
-
-            if let externalPath = state.externalSubtitlePath,
-               FileManager.default.fileExists(atPath: externalPath) {
-                try attachExternalSubtitle(URL(fileURLWithPath: externalPath))
-            } else if let sibling = pendingSiblingSubtitle {
-                pendingSiblingSubtitle = nil
-                try attachExternalSubtitle(sibling)
-                log("Auto-loaded matching subtitle: \(sibling.lastPathComponent)")
-            } else if state.subtitlesOff {
-                try mpv.setString("sid", value: "no")
-                selectedSubtitleID = nil
-            } else if let subtitleTrackID = state.subtitleTrackID {
-                try mpv.setInt("sid", value: subtitleTrackID)
-                try mpv.setFlag("sub-visibility", value: true)
-                selectedSubtitleID = subtitleTrackID
-            } else {
-                pendingSiblingSubtitle = nil
-            }
-
-            if PlaybackStatePolicy.shouldRestorePosition(state.position, duration: duration) {
-                position = state.position
-                try mpv.command(["seek", String(state.position), "absolute"])
-            }
-
-            didApplyRestoreState = true
-            pendingRestoreState = nil
-            log("Restored playback state.")
+            try attachExternalSubtitle(sibling)
+            log("Auto-loaded matching subtitle: \(sibling.lastPathComponent)")
         } catch {
-            didApplyRestoreState = true
-            pendingRestoreState = nil
-            log("Restore failed: \(error.localizedDescription)")
+            log("Auto-load subtitle failed: \(error.localizedDescription)")
         }
     }
 
