@@ -4,6 +4,17 @@ import Foundation
 import OpenGL.GL3
 import Darwin
 
+struct MPVEndFileSignal: Sendable {
+    let reason: mpv_end_file_reason
+    let error: Int32
+}
+
+struct MPVEventDrainResult: Sendable {
+    var logLines: [String] = []
+    var fileLoaded = false
+    var endFile: MPVEndFileSignal?
+}
+
 enum MPVError: LocalizedError {
     case createFailed
     case commandFailed(String)
@@ -30,6 +41,15 @@ final class MPVClient {
     private var renderContext: OpaquePointer?
     private var renderCallbackUserData: UnsafeMutableRawPointer?
     private weak var renderTarget: (any VideoRenderSurface)?
+    private(set) var mediaFileLoaded = false
+
+    var isMediaReadyForRestore: Bool {
+        mediaFileLoaded
+    }
+
+    func noteLoadStarted() {
+        mediaFileLoaded = false
+    }
 
     func initialize() throws {
         guard handle == nil else { return }
@@ -60,8 +80,8 @@ final class MPVClient {
 
     func attachRenderTarget(_ view: MPVHostView) throws {
         guard let handle else { throw MPVError.createFailed }
-        guard renderContext == nil else {
-            renderTarget = view
+        if let renderContext {
+            migrateRenderCallback(to: view, context: renderContext)
             return
         }
 
@@ -108,8 +128,31 @@ final class MPVClient {
         )
     }
 
+    /// Called when an host view is destroyed; drops the render target if it still points at that view.
+    func releaseRenderTargetIfAttached(_ view: MPVHostView) {
+        guard renderTarget === view else { return }
+        tearDownRenderContext()
+    }
+
     func detachRenderTarget(_ view: MPVHostView) {
         guard renderTarget === view else { return }
+        tearDownRenderContext()
+    }
+
+    private func migrateRenderCallback(to view: MPVHostView, context: OpaquePointer) {
+        guard renderTarget !== view else { return }
+        mpv_render_context_set_update_callback(context, nil, nil)
+        if let userData = renderCallbackUserData {
+            Unmanaged<MPVHostView>.fromOpaque(userData).release()
+            renderCallbackUserData = nil
+        }
+        renderTarget = view
+        let userData = Unmanaged.passRetained(view).toOpaque()
+        renderCallbackUserData = userData
+        mpv_render_context_set_update_callback(context, mpvRenderUpdateCallback, userData)
+    }
+
+    private func tearDownRenderContext() {
         if let renderContext {
             mpv_render_context_set_update_callback(renderContext, nil, nil)
             mpv_render_context_free(renderContext)
@@ -315,10 +358,10 @@ final class MPVClient {
         return tracks
     }
 
-    func drainEvents() -> [String] {
-        guard let handle else { return [] }
+    func drainEvents() -> MPVEventDrainResult {
+        guard let handle else { return MPVEventDrainResult() }
 
-        var lines: [String] = []
+        var result = MPVEventDrainResult()
 
         while true {
             guard let event = mpv_wait_event(handle, 0) else { break }
@@ -331,18 +374,32 @@ final class MPVClient {
                 let prefix = message.prefix.map { String(cString: $0) } ?? "mpv"
                 let level = message.level.map { String(cString: $0) } ?? "info"
                 let text = message.text.map { String(cString: $0).trimmingCharacters(in: .whitespacesAndNewlines) } ?? ""
-                lines.append("[mpv:\(level):\(prefix)] \(text)")
+                result.logLines.append("[mpv:\(level):\(prefix)] \(text)")
+            } else if eventID == MPV_EVENT_FILE_LOADED {
+                mediaFileLoaded = true
+                result.fileLoaded = true
+                result.logLines.append("[mpv:event] file-loaded")
+            } else if eventID == MPV_EVENT_END_FILE,
+                      let data = event.pointee.data {
+                let end = data.assumingMemoryBound(to: mpv_event_end_file.self).pointee
+                result.endFile = MPVEndFileSignal(reason: end.reason, error: end.error)
+                let name = mpv_event_name(eventID).map { String(cString: $0) } ?? "end-file"
+                if end.error < 0 {
+                    result.logLines.append("[mpv:event] \(name) reason=\(end.reason) error=\(errorString(end.error))")
+                } else {
+                    result.logLines.append("[mpv:event] \(name) reason=\(end.reason)")
+                }
             } else {
                 let name = mpv_event_name(eventID).map { String(cString: $0) } ?? "event-\(eventID.rawValue)"
                 if event.pointee.error < 0 {
-                    lines.append("[mpv:event] \(name) error=\(errorString(event.pointee.error))")
+                    result.logLines.append("[mpv:event] \(name) error=\(errorString(event.pointee.error))")
                 } else {
-                    lines.append("[mpv:event] \(name)")
+                    result.logLines.append("[mpv:event] \(name)")
                 }
             }
         }
 
-        return lines
+        return result
     }
 
     func subtitleDiagnostics() -> String {

@@ -38,6 +38,8 @@ swift test
 - `ControlProtocolTests`
   - control request/response encoding
   - `AnyCodable` JSON support
+- `ControlSocketPeerPolicyTests`
+  - Unix socket peer credential check accepts same-user connections
   - control method names and state round trips
   - control input validation and volume/speed clamping
 - `MCPLiveControlTests` / `MCPLiveProcessTests` (optional, requires running Valen)

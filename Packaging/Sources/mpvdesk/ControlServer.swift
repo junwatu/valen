@@ -6,6 +6,7 @@ import ValenControl
 
 final class ControlServer: @unchecked Sendable {
     static let maxRequestBytes = 1_048_576
+    static let mainThreadResponseTimeout: TimeInterval = 30
 
     private let player: PlayerModel
     private let socketURL: URL
@@ -66,6 +67,11 @@ final class ControlServer: @unchecked Sendable {
 
         listenFD = fd
 
+        try? FileManager.default.setAttributes(
+            [.posixPermissions: NSNumber(value: Int16(0o600))],
+            ofItemAtPath: socketURL.path
+        )
+
         let thread = Thread { [weak self] in
             self?.acceptLoop()
         }
@@ -124,6 +130,12 @@ final class ControlServer: @unchecked Sendable {
     private func handleConnection(_ fd: Int32) {
         defer { close(fd) }
 
+        guard ControlSocketPeerPolicy.isAuthorized(clientFD: fd) else {
+            writeResponse(fd: fd, response: .fail(id: 0, message: "unauthorized peer"))
+            NSLog("[valen] control connection rejected: peer credentials mismatch")
+            return
+        }
+
         var timeout = timeval(tv_sec: 5, tv_usec: 0)
         _ = withUnsafePointer(to: &timeout) { ptr -> Int32 in
             ptr.withMemoryRebound(to: timeval.self, capacity: 1) { rebound in
@@ -172,9 +184,28 @@ final class ControlServer: @unchecked Sendable {
         if Thread.isMainThread {
             return MainActor.assumeIsolated { handleOnMainActor(request) }
         }
-        return DispatchQueue.main.sync {
-            MainActor.assumeIsolated { handleOnMainActor(request) }
+
+        final class ResponseBox: @unchecked Sendable {
+            var value: ControlResponse
+            init(_ value: ControlResponse) { self.value = value }
         }
+
+        let box = ResponseBox(.fail(id: request.id, message: "main thread timed out"))
+        let semaphore = DispatchSemaphore(value: 0)
+        DispatchQueue.main.async { [weak self] in
+            guard let self else {
+                semaphore.signal()
+                return
+            }
+            box.value = MainActor.assumeIsolated { self.handleOnMainActor(request) }
+            semaphore.signal()
+        }
+
+        if semaphore.wait(timeout: .now() + Self.mainThreadResponseTimeout) == .timedOut {
+            NSLog("[valen] control request timed out on main thread: \(request.method)")
+            return .fail(id: request.id, message: "main thread timed out after \(Int(Self.mainThreadResponseTimeout))s")
+        }
+        return box.value
     }
 
     @MainActor

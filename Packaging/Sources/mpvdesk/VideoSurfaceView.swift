@@ -109,4 +109,14 @@ final class MPVHostView: NSOpenGLView, VideoRenderSurface {
             NSLog("mpv render context failed: \(error.localizedDescription)")
         }
     }
+
+    deinit {
+        guard Thread.isMainThread else {
+            NSLog("[valen] MPVHostView deinit off main thread; render target may leak until quit.")
+            return
+        }
+        MainActor.assumeIsolated {
+            mpv?.releaseRenderTargetIfAttached(self)
+        }
+    }
 }

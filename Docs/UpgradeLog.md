@@ -1,9 +1,9 @@
 # Reliability upgrades
 
 - [x] 1. Subtitle Off takes precedence over a saved external path; explicit track selection clears the external selection.
-- [ ] 2. Wait for file-loaded before restoring; isolate optional track errors.
-- [ ] 3. Release display protection at EOF and load failure.
-- [ ] 4. Bound MCP transport and report command errors.
+- [x] 2. Wait for file-loaded before restoring; isolate optional track errors.
+- [x] 3. Release display protection at EOF and load failure.
+- [x] 4. Bound MCP transport and report command errors (socket mode 600, same-user peer check, main-thread timeout).
 
 ## Validation
 

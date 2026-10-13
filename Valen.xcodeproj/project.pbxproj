@@ -25,6 +25,7 @@
 		A00000000000000000000014 /* ControlProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000003F /* ControlProtocol.swift */; };
 		A00000000000000000000015 /* ControlCommandPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000047 /* ControlCommandPolicy.swift */; };
 		A00000000000000000000017 /* SinglePlayerPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000004A /* SinglePlayerPolicy.swift */; };
+		A00000000000000000000018 /* ControlSocketPeerPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000004B /* ControlSocketPeerPolicy.swift */; };
 		A00000000000000000000009 /* Valen.icns in Resources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000029 /* Valen.icns */; };
 		A0000000000000000000000A /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A0000000000000000000002A /* AppKit.framework */; };
 		A0000000000000000000000B /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A0000000000000000000002B /* OpenGL.framework */; };
@@ -51,6 +52,7 @@
 		A0000000000000000000003F /* ControlProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControlProtocol.swift; sourceTree = "<group>"; };
 		A00000000000000000000047 /* ControlCommandPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControlCommandPolicy.swift; sourceTree = "<group>"; };
 		A0000000000000000000004A /* SinglePlayerPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SinglePlayerPolicy.swift; sourceTree = "<group>"; };
+		A0000000000000000000004B /* ControlSocketPeerPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControlSocketPeerPolicy.swift; sourceTree = "<group>"; };
 		A00000000000000000000029 /* Valen.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = Valen.icns; sourceTree = "<group>"; };
 		A0000000000000000000002A /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
 		A0000000000000000000002B /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
@@ -148,6 +150,7 @@
 			children = (
 				A00000000000000000000047 /* ControlCommandPolicy.swift */,
 				A0000000000000000000003F /* ControlProtocol.swift */,
+				A0000000000000000000004B /* ControlSocketPeerPolicy.swift */,
 			);
 			path = Packaging/Sources/ValenControl;
 			sourceTree = "<group>";
@@ -247,6 +250,7 @@
 				A00000000000000000000013 /* OverlayVisibilityPolicy.swift in Sources */,
 				A00000000000000000000014 /* ControlProtocol.swift in Sources */,
 				A00000000000000000000015 /* ControlCommandPolicy.swift in Sources */,
+				A00000000000000000000018 /* ControlSocketPeerPolicy.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

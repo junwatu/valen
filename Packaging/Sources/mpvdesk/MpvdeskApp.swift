@@ -86,6 +86,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let player = PlayerModel()
     private var controlServer: ControlServer?
     private var windowObserver: NSObjectProtocol?
+    private var isDuplicateInstance = false
 
     override init() {
         super.init()
@@ -93,13 +94,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationWillFinishLaunching(_ notification: Notification) {
-        // Prefer handing off to an already-running Valen (bundled launches).
-        if activateExistingInstanceIfNeeded() {
-            NSApp.terminate(nil)
-        }
+        // Hand off to an already-running Valen; quit after the launch event queue drains.
+        isDuplicateInstance = activateExistingInstanceIfNeeded()
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        if isDuplicateInstance {
+            DispatchQueue.main.async {
+                NSApp.terminate(nil)
+            }
+            return
+        }
+
         enforceSinglePlayerWindow()
         windowObserver = NotificationCenter.default.addObserver(
             forName: NSWindow.didBecomeKeyNotification,
@@ -140,15 +146,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func application(_ application: NSApplication, open urls: [URL]) {
+        guard !isDuplicateInstance else { return }
         openURLsInSinglePlayer(urls)
     }
 
     func application(_ sender: NSApplication, openFile filename: String) -> Bool {
+        guard !isDuplicateInstance else { return true }
         openURLsInSinglePlayer([URL(fileURLWithPath: filename)])
         return true
     }
 
     func application(_ sender: NSApplication, openFiles filenames: [String]) {
+        guard !isDuplicateInstance else {
+            NSApp.reply(toOpenOrPrint: .success)
+            return
+        }
         openURLsInSinglePlayer(filenames.map { URL(fileURLWithPath: $0) })
         NSApp.reply(toOpenOrPrint: .success)
     }
