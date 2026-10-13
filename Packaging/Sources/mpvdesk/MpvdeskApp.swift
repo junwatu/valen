@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 @main
@@ -6,13 +7,15 @@ struct ValenApp: App {
     @StateObject private var updater = SparkleUpdaterController()
 
     var body: some Scene {
-        WindowGroup {
+        // Single fixed window — not WindowGroup — so Valen never multi-windows.
+        Window(SinglePlayerPolicy.mainWindowTitle, id: SinglePlayerPolicy.mainWindowID) {
             ContentView()
                 .environmentObject(appDelegate.player)
                 .frame(minWidth: 480, minHeight: 280)
         }
         .windowResizability(.contentMinSize)
         .windowStyle(.titleBar)
+        .defaultSize(width: 960, height: 540)
         .commands {
             CommandGroup(replacing: .appInfo) {
                 Button("About Valen") {
@@ -20,6 +23,7 @@ struct ValenApp: App {
                 }
             }
 
+            // Replace New Item / New Window with Open File only.
             CommandGroup(replacing: .newItem) {
                 Button("Open File...") {
                     appDelegate.player.openFilePanel()
@@ -81,13 +85,32 @@ struct ValenApp: App {
 final class AppDelegate: NSObject, NSApplicationDelegate {
     let player = PlayerModel()
     private var controlServer: ControlServer?
+    private var windowObserver: NSObjectProtocol?
 
     override init() {
         super.init()
         AppPreferences.registerDefaults()
     }
 
+    func applicationWillFinishLaunching(_ notification: Notification) {
+        // Prefer handing off to an already-running Valen (bundled launches).
+        if activateExistingInstanceIfNeeded() {
+            NSApp.terminate(nil)
+        }
+    }
+
     func applicationDidFinishLaunching(_ notification: Notification) {
+        enforceSinglePlayerWindow()
+        windowObserver = NotificationCenter.default.addObserver(
+            forName: NSWindow.didBecomeKeyNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in
+                self?.enforceSinglePlayerWindow()
+            }
+        }
+
         let server = ControlServer(player: player)
         do {
             try server.start()
@@ -98,6 +121,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationWillTerminate(_ notification: Notification) {
+        if let windowObserver {
+            NotificationCenter.default.removeObserver(windowObserver)
+            self.windowObserver = nil
+        }
         player.prepareForTermination()
         controlServer?.stop()
         controlServer = nil
@@ -105,5 +132,85 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         true
+    }
+
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        player.activateMainWindow()
+        return true
+    }
+
+    func application(_ application: NSApplication, open urls: [URL]) {
+        openURLsInSinglePlayer(urls)
+    }
+
+    func application(_ sender: NSApplication, openFile filename: String) -> Bool {
+        openURLsInSinglePlayer([URL(fileURLWithPath: filename)])
+        return true
+    }
+
+    func application(_ sender: NSApplication, openFiles filenames: [String]) {
+        openURLsInSinglePlayer(filenames.map { URL(fileURLWithPath: $0) })
+        NSApp.reply(toOpenOrPrint: .success)
+    }
+
+    private func openURLsInSinglePlayer(_ urls: [URL]) {
+        switch SinglePlayerPolicy.openIntent(for: urls, hasCurrentFile: player.currentFile != nil) {
+        case .loadMedia(let url):
+            player.load(url)
+            player.activateMainWindow()
+        case .loadSubtitle(let url):
+            player.loadExternalSubtitle(url)
+            player.activateMainWindow()
+        case .none:
+            player.activateMainWindow()
+        }
+    }
+
+    /// If another Valen process with the same bundle ID is already running, activate it and quit.
+    private func activateExistingInstanceIfNeeded() -> Bool {
+        guard let bundleID = Bundle.main.bundleIdentifier, !bundleID.isEmpty else {
+            return false
+        }
+
+        let others = NSRunningApplication.runningApplications(withBundleIdentifier: bundleID)
+            .filter { !$0.isTerminated && $0.processIdentifier != ProcessInfo.processInfo.processIdentifier }
+
+        guard let existing = others.first else {
+            return false
+        }
+
+        existing.activate()
+        NSLog("[valen] single-instance: activated existing process \(existing.processIdentifier)")
+        return true
+    }
+
+    /// Safety net: close any extra player surfaces if a second window appears.
+    private func enforceSinglePlayerWindow() {
+        let playerWindows = NSApp.windows.filter { window in
+            containsMPVHostView(window.contentView)
+        }
+
+        guard playerWindows.count > 1 else { return }
+
+        let main = player.mainWindow ?? playerWindows.first
+        for window in playerWindows where window !== main {
+            let shouldClose = SinglePlayerPolicy.shouldCloseAsExtraPlayerWindow(
+                isVisible: window.isVisible,
+                isMiniaturized: window.isMiniaturized,
+                isFloatingOrModalPanel: window.level != .normal || window.isSheet,
+                hasMPVHostView: true,
+                isMainPlayerWindow: false
+            )
+            if shouldClose {
+                NSLog("[valen] single-window: closing extra player window")
+                window.close()
+            }
+        }
+    }
+
+    private func containsMPVHostView(_ view: NSView?) -> Bool {
+        guard let view else { return false }
+        if view is MPVHostView { return true }
+        return view.subviews.contains { containsMPVHostView($0) }
     }
 }

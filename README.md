@@ -6,7 +6,7 @@
 
 <p align="center">
     <strong>A native macOS media player built with SwiftUI and powered by libmpv.<br/>
-    Video-first controls, a compact mini-player mode, MKV support, subtitles, audio tracks, per-video resume state, and an MCP server for AI agent control.</strong>
+    Single-window, single-player design with video-first controls, a compact mini-player mode, MKV support, subtitles, audio tracks, per-video resume state, and an MCP server for AI agent control.</strong>
 </p>
 
 <div align="center">
@@ -24,9 +24,11 @@
 
 - Native SwiftUI macOS app
 - mpv playback through `libmpv`
+- **Single window, single player** — one main player window and one playback session
+- Opening another video replaces the current file (resume state is saved first)
+- Single app instance — a second launch activates the running Valen instead of starting another player
 - MKV, WebM, MP4, MOV, AVI, FLAC, OGG, WAV, and common media extension support
-- Open files with `Command-O`
-- Drag and drop media files
+- Open files with `Command-O`, Finder, or drag and drop
 - Compact QuickTime-style translucent overlay controls
 - Responsive compact mode for small windows (single-row layout, 480×280 minimum)
 - Overlay auto-hides during playback when the pointer is idle
@@ -36,7 +38,7 @@
 - Audio track selector
 - Subtitle track selector
 - External subtitle files (`.srt`, `.ass`, `.ssa`, `.vtt`, and more) via menu, drag-and-drop, or auto-load when `Movie.srt` sits beside `Movie.mkv`
-- Native Settings window
+- Native Settings window (separate from the player window)
 - Per-video saved state:
   - resume position
   - resume state is flushed when Valen quits
@@ -45,6 +47,21 @@
   - subtitles off/on state
   - volume
 - MCP server (stdio + Unix socket) for AI agent control — ships inside the app bundle
+
+## Single player behavior
+
+Valen is intentionally **not** a multi-window or multi-instance player.
+
+| Action | Result |
+| --- | --- |
+| Open / drop a new media file | Replaces the current file in the same window |
+| Open while Valen is already running | Activates the existing instance and loads there |
+| Open several files at once | Plays the first supported media file |
+| Drop a subtitle while a video is open | Loads that subtitle on the current file |
+| Dock click with no visible window | Brings the existing player window forward |
+| MCP `open_file` | Loads into the same single player and focuses its window |
+
+There is no “open in new window” path. Settings is the only extra app window, and it does not create a second player.
 
 ## Shortcuts
 
@@ -102,7 +119,7 @@ Run the unit and layout-contract tests:
 swift test
 ```
 
-The tests cover time formatting, media track labels, supported media extensions, saved playback state, preference defaults, overlay behavior policy, MCP protocol encoding, release metadata, app bundle metadata, and stable UI copy/icons/metrics for the empty state and playback overlay.
+The tests cover time formatting, media track labels, supported media extensions, saved playback state, preference defaults, overlay behavior policy, single-player open intent, MCP protocol encoding, release metadata, app bundle metadata (including single-instance), and stable UI copy/icons/metrics for the empty state and playback overlay.
 
 See [Docs/Testing.md](Docs/Testing.md) for the test map and guidance on when to add more tests.
 
@@ -167,7 +184,7 @@ The `valen-mcp` executable reads JSON-RPC over stdio and forwards calls to the r
 | `play` | - | Resume playback |
 | `pause` | - | Pause playback |
 | `toggle_play_pause` | - | Toggle play/pause |
-| `open_file` | `path` (string, absolute) | Open a local file; path must start with `/` |
+| `open_file` | `path` (string, absolute) | Open a local file in the single player (replaces current media); path must start with `/` |
 | `seek` | `seconds` (number), `relative` (boolean, optional) | Seek to an absolute time, or by a signed offset when `relative` is true |
 | `set_volume` | `value` (0–150) | Set volume; 100 is unity gain |
 | `set_speed` | `speed` (0.25–4.0) | Set playback speed multiplier |
@@ -228,6 +245,7 @@ Launch Claude Desktop while the Valen app is running and the thirteen tools appe
 
 - OpenGL rendering works but produces deprecation warnings.
 - Sparkle update code is scaffolded, but the framework still needs to be embedded in the Xcode target.
+- Multi-window / multi-player is intentionally unsupported; open another file to replace the current one.
 
 ## License
 

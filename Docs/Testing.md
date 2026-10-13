@@ -30,6 +30,11 @@ swift test
 - `PlaybackStatePolicyTests`
   - resume-state save guards
   - restore-position edge cases near the start and end of a video
+- `SinglePlayerPolicyTests`
+  - single-window identity and title contract
+  - open intent prefers one media file (replace, never multi-player)
+  - subtitle open only when media is already loaded
+  - extra player-window close policy
 - `ControlProtocolTests`
   - control request/response encoding
   - `AnyCodable` JSON support

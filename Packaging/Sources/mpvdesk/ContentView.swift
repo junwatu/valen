@@ -87,9 +87,9 @@ struct ContentView: View {
             }
             updateCursorVisibility()
         }
-        .onChange(of: player.currentFile) { _, newFile in
+        .onChange(of: player.currentFile) { _, _ in
             showControlsTemporarily()
-            NSApp.windows.forEach { $0.title = newFile?.lastPathComponent ?? "Valen" }
+            player.updateMainWindowTitle()
             updateCursorVisibility()
         }
         .onChange(of: activeControlPopover) { _, activePopover in
@@ -110,7 +110,16 @@ struct ContentView: View {
             player.handleDrop(providers)
         }
         .onOpenURL { url in
-            player.load(url)
+            switch SinglePlayerPolicy.openIntent(for: [url], hasCurrentFile: player.currentFile != nil) {
+            case .loadMedia(let mediaURL):
+                player.load(mediaURL)
+                player.activateMainWindow()
+            case .loadSubtitle(let subtitleURL):
+                player.loadExternalSubtitle(subtitleURL)
+                player.activateMainWindow()
+            case .none:
+                break
+            }
         }
         .alert("mpv error", isPresented: player.hasError) {
             Button("OK", role: .cancel) {}

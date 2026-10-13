@@ -202,6 +202,7 @@ final class ControlServer: @unchecked Sendable {
                 return .fail(id: id, message: "missing or non-absolute 'path' (must start with /)")
             }
             player.load(URL(fileURLWithPath: path))
+            player.activateMainWindow()
             return .ok(id: id)
 
         case ControlMethod.seek.rawValue:

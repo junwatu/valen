@@ -74,6 +74,30 @@ final class PlayerModel: ObservableObject {
         guard hostView !== view else { return }
         hostView = view
         mpv.attachDrawable(view)
+        updateMainWindowTitle()
+    }
+
+    /// The single player window hosting the mpv surface, if attached.
+    var mainWindow: NSWindow? {
+        hostView?.window
+    }
+
+    /// Bring the single player window forward (used for Finder open, MCP, dock reopen).
+    func activateMainWindow() {
+        NSApp.activate()
+        if let window = mainWindow {
+            if window.isMiniaturized {
+                window.deminiaturize(nil)
+            }
+            window.makeKeyAndOrderFront(nil)
+        } else if let window = NSApp.windows.first(where: { $0.canBecomeKey && !$0.isSheet }) {
+            window.makeKeyAndOrderFront(nil)
+        }
+        updateMainWindowTitle()
+    }
+
+    func updateMainWindowTitle() {
+        mainWindow?.title = SinglePlayerPolicy.windowTitle(for: currentFile)
     }
 
     func openFilePanel() {
@@ -161,6 +185,7 @@ final class PlayerModel: ObservableObject {
             }
             try mpv.command(["loadfile", url.path])
             try mpv.setFlag("pause", value: false)
+            updateMainWindowTitle()
             updatePlaybackActivity()
         } catch {
             errorMessage = error.localizedDescription
@@ -291,6 +316,7 @@ final class PlayerModel: ObservableObject {
 
     func selectSubtitleTrack(_ track: MediaTrack?) {
         do {
+            loadedExternalSubtitle = nil
             selectedSubtitleID = track?.id
             if let track {
                 log("Selecting subtitle: \(track.displayName) id=\(track.id)")
@@ -440,7 +466,11 @@ final class PlayerModel: ObservableObject {
                     selectedAudioID = audioTrackID
                 }
 
-                if let externalPath = state.externalSubtitlePath,
+                if state.subtitlesOff {
+                    try mpv.setString("sid", value: "no")
+                    selectedSubtitleID = nil
+                    pendingSiblingSubtitle = nil
+                } else if let externalPath = state.externalSubtitlePath,
                    FileManager.default.fileExists(atPath: externalPath) {
                     try attachExternalSubtitle(URL(fileURLWithPath: externalPath))
                 } else if let sibling = pendingSiblingSubtitle {

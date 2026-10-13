@@ -38,9 +38,13 @@ final class MPVClient {
         }
 
         handle = created
-        try setString("terminal", value: "no")
-        try setString("msg-level", value: "all=v")
-        try setString("vo", value: "libmpv")
+        // Options must be set before mpv_initialize (not mpv_set_property).
+        try setOption("terminal", value: "no")
+        try setOption("msg-level", value: "all=v")
+        try setOption("vo", value: "libmpv")
+        // Interleaved float avoids CoreAudio hotplug crashes/silence on macOS 26/27
+        // when the default output changes (e.g. Bluetooth headset connect).
+        try setOption("audio-format", value: "float")
 
         let status = mpv_initialize(created)
         guard status >= 0 else {
@@ -182,6 +186,18 @@ final class MPVClient {
 
         guard status >= 0 else {
             throw MPVError.commandFailed(errorString(status))
+        }
+    }
+
+    private func setOption(_ name: String, value: String) throws {
+        guard let handle else { throw MPVError.createFailed }
+        NSLog("[valen] option \(name)=\(value)")
+        let status = value.withCString { pointer in
+            mpv_set_option_string(handle, name, pointer)
+        }
+
+        guard status >= 0 else {
+            throw MPVError.setPropertyFailed(name)
         }
     }
 

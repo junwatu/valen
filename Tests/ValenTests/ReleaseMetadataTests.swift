@@ -43,10 +43,22 @@ final class ReleaseMetadataTests: XCTestCase {
         XCTAssertContains(buildScript, "<string>org.webmproject.webm</string>")
         XCTAssertContains(buildScript, "<string>org.xiph.flac</string>")
         XCTAssertContains(buildScript, "<key>LSHandlerRank</key>")
+        XCTAssertContains(buildScript, "<key>LSMultipleInstancesProhibited</key>")
+        XCTAssertContains(buildScript, "<true/>")
 
         for fileExtension in ["mkv", "mka", "webm", "mp4", "mov", "m4v", "avi", "flv", "wmv", "mp3", "flac", "ogg", "wav"] {
             XCTAssertContains(buildScript, "<string>\(fileExtension)</string>")
         }
+    }
+
+    func testXcodeInfoPlistProhibitsMultipleInstances() throws {
+        let root = repositoryRoot()
+        let infoPlist = try String(
+            contentsOf: root.appendingPathComponent("Xcode/Valen-Info.plist"),
+            encoding: .utf8
+        )
+        XCTAssertContains(infoPlist, "<key>LSMultipleInstancesProhibited</key>")
+        XCTAssertContains(infoPlist, "<true/>")
     }
 
     private func releaseFiles() throws -> ReleaseFiles {

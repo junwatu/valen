@@ -213,6 +213,8 @@ cat > "$CONTENTS_DIR/Info.plist" <<PLIST
   </array>
   <key>LSMinimumSystemVersion</key>
   <string>14.0</string>
+  <key>LSMultipleInstancesProhibited</key>
+  <true/>
   <key>NSHighResolutionCapable</key>
   <true/>
 $(if [[ -n "$SPARKLE_FEED_URL" ]]; then cat <<SPARKLE_PLIST
