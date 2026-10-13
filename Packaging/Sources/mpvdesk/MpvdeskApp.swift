@@ -86,6 +86,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let player = PlayerModel()
     private var controlServer: ControlServer?
     private var windowObserver: NSObjectProtocol?
+    private var workspaceObservers: [NSObjectProtocol] = []
     private var isDuplicateInstance = false
 
     override init() {
@@ -117,6 +118,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
 
+        registerWorkspaceSleepObservers()
+
         let server = ControlServer(player: player)
         do {
             try server.start()
@@ -131,6 +134,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             NotificationCenter.default.removeObserver(windowObserver)
             self.windowObserver = nil
         }
+        for observer in workspaceObservers {
+            NSWorkspace.shared.notificationCenter.removeObserver(observer)
+        }
+        workspaceObservers.removeAll()
         player.prepareForTermination()
         controlServer?.stop()
         controlServer = nil
@@ -224,5 +231,47 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         guard let view else { return false }
         if view is MPVHostView { return true }
         return view.subviews.contains { containsMPVHostView($0) }
+    }
+
+    private func registerWorkspaceSleepObservers() {
+        let center = NSWorkspace.shared.notificationCenter
+        workspaceObservers = [
+            center.addObserver(
+                forName: NSWorkspace.willSleepNotification,
+                object: nil,
+                queue: .main
+            ) { [weak self] _ in
+                Task { @MainActor in
+                    self?.player.handleSystemWillSleep()
+                }
+            },
+            center.addObserver(
+                forName: NSWorkspace.didWakeNotification,
+                object: nil,
+                queue: .main
+            ) { [weak self] _ in
+                Task { @MainActor in
+                    self?.player.handleSystemDidWake()
+                }
+            },
+            center.addObserver(
+                forName: NSWorkspace.screensDidSleepNotification,
+                object: nil,
+                queue: .main
+            ) { [weak self] _ in
+                Task { @MainActor in
+                    self?.player.handleScreensDidSleep()
+                }
+            },
+            center.addObserver(
+                forName: NSWorkspace.screensDidWakeNotification,
+                object: nil,
+                queue: .main
+            ) { [weak self] _ in
+                Task { @MainActor in
+                    self?.player.handleScreensDidWake()
+                }
+            },
+        ]
     }
 }

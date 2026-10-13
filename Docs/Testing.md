@@ -30,6 +30,8 @@ swift test
 - `PlaybackStatePolicyTests`
   - resume-state save guards
   - restore-position edge cases near the start and end of a video
+- `SubtitleSelectionPolicyTests`
+  - subtitle UI selection follows mpv `sid` when track `selected` flags drop (e.g. after pause)
 - `SinglePlayerPolicyTests`
   - single-window identity and title contract
   - open intent prefers one media file (replace, never multi-player)

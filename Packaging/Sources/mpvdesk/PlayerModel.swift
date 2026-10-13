@@ -370,6 +370,52 @@ final class PlayerModel: ObservableObject {
         endPlaybackActivity()
     }
 
+    /// Flush resume data before macOS suspends the app (sleep, lid close, etc.).
+    func handleSystemWillSleep() {
+        savePlaybackState()
+        log("System will sleep — saved playback state.")
+    }
+
+    /// Resync UI and mpv after the machine wakes from sleep.
+    func handleSystemDidWake() {
+        log("System did wake — resyncing player.")
+        resyncAfterWake()
+    }
+
+    /// Display powered down (may happen without full system sleep when paused).
+    func handleScreensDidSleep() {
+        savePlaybackState()
+        log("Displays did sleep — saved playback state.")
+    }
+
+    /// Display powered back on — refresh frame and playback flags.
+    func handleScreensDidWake() {
+        log("Displays did wake — refreshing player.")
+        resyncAfterWake()
+    }
+
+    private func resyncAfterWake() {
+        guard currentFile != nil else {
+            updatePlaybackActivity()
+            return
+        }
+
+        position = mpv.getDouble("time-pos") ?? position
+        duration = mpv.getDouble("duration") ?? duration
+        isPaused = mpv.getFlag("pause") ?? isPaused
+        refreshTracks()
+        updatePlaybackActivity()
+        hostView?.scheduleRender()
+
+        if !isPaused {
+            do {
+                try mpv.setString("audio-device", value: "auto")
+            } catch {
+                log("Post-wake audio reselect failed: \(error.localizedDescription)")
+            }
+        }
+    }
+
     private func startPolling() {
         timer = Timer.scheduledTimer(withTimeInterval: 0.25, repeats: true) { [weak self] _ in
             Task { @MainActor in
@@ -462,7 +508,13 @@ final class PlayerModel: ObservableObject {
         }
 
         selectedAudioID = audio.first(where: \.isSelected)?.id
-        selectedSubtitleID = subtitles.first(where: \.isSelected)?.id
+        let sid = mpv.getString("sid")
+        let subVisible = mpv.getFlag("sub-visibility") ?? true
+        selectedSubtitleID = SubtitleSelectionPolicy.selectedTrackID(
+            sid: sid,
+            subVisibility: subVisible,
+            subtitleTracks: subtitles
+        )
     }
 
     private func applyPendingRestoreIfReady() {
